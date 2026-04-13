@@ -6,6 +6,25 @@
     <title>勇者與公主魔法：五大英雄奧義覺醒版</title>
     <link rel="stylesheet" href="style.css">
     <link rel="icon" href="data:,">
+    <style>
+        /* 雲端存檔通知訊息樣式 */
+        .cloud-notification {
+            background: #2c3e50;
+            color: white;
+            padding: 8px 15px;
+            border-radius: 20px;
+            font-size: 14px;
+            margin-top: 10px;
+            text-align: center;
+            animation: fadeInOut 2s ease-in-out forwards;
+        }
+        @keyframes fadeInOut {
+            0% { opacity: 0; transform: translateY(-10px); }
+            15% { opacity: 1; transform: translateY(0); }
+            85% { opacity: 1; transform: translateY(0); }
+            100% { opacity: 0; transform: translateY(-10px); }
+        }
+    </style>
 </head>
 <body>
 
@@ -79,15 +98,49 @@
         
         <button id="bgm-toggle-settings" class="option-btn" style="width:100%; margin-bottom:20px; box-shadow:0 4px 0 #d1c4e9;" onclick="toggleMusic()">音樂：已暫停</button>
         
-        <!-- 雲端存檔專區 -->
+        <!-- 雲端存檔專區（多存檔槽版） -->
         <div style="background:#e8f4fd; padding:15px; border-radius:15px; margin-bottom:20px; border:2px solid #3498db;">
             <div style="font-size:18px; color:#2980b9; font-weight:bold; margin-bottom:10px;">☁️ 雲端存檔專區</div>
-            <div style="display: flex; gap: 10px; margin-bottom: 10px;">
-                <button id="cloud-save-btn" class="option-btn" style="background:#3498db; color:white; border:none; flex:1; padding: 10px; cursor:pointer;">☁️ 儲存到雲端</button>
-                <button id="cloud-load-btn" class="option-btn" style="background:#2ecc71; color:white; border:none; flex:1; padding: 10px; cursor:pointer;">🌐 從雲端讀取</button>
+            
+            <!-- 三個存檔槽 -->
+            <div style="display: flex; gap: 10px; margin-bottom: 15px;">
+                <div id="slot1-card" style="flex:1; background:white; border-radius:10px; padding:8px; text-align:center; border:2px solid #ddd; cursor:pointer;" onclick="selectSlot(1)">
+                    <div style="font-weight:bold;">📁 存檔 1</div>
+                    <div id="slot1-name" style="font-size:12px; color:#888;">未使用</div>
+                    <div id="slot1-time" style="font-size:10px; color:#aaa;"></div>
+                </div>
+                <div id="slot2-card" style="flex:1; background:white; border-radius:10px; padding:8px; text-align:center; border:2px solid #ddd; cursor:pointer;" onclick="selectSlot(2)">
+                    <div style="font-weight:bold;">📁 存檔 2</div>
+                    <div id="slot2-name" style="font-size:12px; color:#888;">未使用</div>
+                    <div id="slot2-time" style="font-size:10px; color:#aaa;"></div>
+                </div>
+                <div id="slot3-card" style="flex:1; background:white; border-radius:10px; padding:8px; text-align:center; border:2px solid #ddd; cursor:pointer;" onclick="selectSlot(3)">
+                    <div style="font-weight:bold;">📁 存檔 3</div>
+                    <div id="slot3-name" style="font-size:12px; color:#888;">未使用</div>
+                    <div id="slot3-time" style="font-size:10px; color:#aaa;"></div>
+                </div>
             </div>
-            <div style="font-size: 12px; color: #555; text-align: center;">
-                💡 雲端存檔讓你可以在不同裝置間同步遊戲進度！
+            
+            <!-- 目前選中的存檔槽 -->
+            <div id="selected-slot-display" style="background:#d4e6f1; border-radius:10px; padding:5px 10px; margin-bottom:10px; font-size:13px; text-align:center;">
+                📍 目前選中：<span id="selected-slot-text">存檔 1</span>
+            </div>
+            
+            <!-- 操作按鈕 -->
+            <div style="display: flex; gap: 10px; margin-bottom: 10px;">
+                <button id="cloud-save-btn" class="option-btn" style="background:#3498db; color:white; border:none; flex:1; padding: 10px; cursor:pointer;">💾 儲存到目前選中的存檔</button>
+                <button id="cloud-load-btn" class="option-btn" style="background:#2ecc71; color:white; border:none; flex:1; padding: 10px; cursor:pointer;">📂 從目前選中的存檔讀取</button>
+            </div>
+            
+            <!-- 額外功能 -->
+            <div style="display: flex; gap: 10px; margin-bottom: 10px;">
+                <button id="rename-slot-btn" class="option-btn" style="background:#f39c12; color:white; border:none; flex:1; padding: 8px; cursor:pointer; font-size:13px;">✏️ 重新命名存檔</button>
+                <button id="clear-slot-btn" class="option-btn" style="background:#e74c3c; color:white; border:none; flex:1; padding: 8px; cursor:pointer; font-size:13px;">🗑️ 清除存檔</button>
+            </div>
+            
+            <div id="cloud-notification-area" style="min-height: 40px;"></div>
+            <div style="font-size: 11px; color: #555; text-align: center;">
+                💡 點擊存檔卡片可以切換目前選中的存檔槽
             </div>
         </div>
         
@@ -96,8 +149,10 @@
             <button id="parent-locked-btn" class="option-btn" style="background:#bdc3c7; color:#2c3e50; border:none; width:100%; box-shadow:0 4px 0 #95a5a6;" onclick="unlockParentMode()">🔒 點擊解鎖</button>
             <div id="parent-unlocked-zone" style="display:none; flex-direction:column; gap:10px; margin-top:10px;">
                 <button class="option-btn" style="background:#f39c12; color:white; border:none; width:100%; box-shadow:0 4px 0 #d35400;" onclick="parentAction('cheat')">✨ 開啟滿星測試</button>
-                <button class="option-btn" style="background:#2ecc71; color:white; border:none; width:100%; box-shadow:0 4px 0 #27ae60;" onclick="parentAction('restore')">⏪ 還原進度</button>
                 <button class="option-btn" style="background:#e74c3c; color:white; border:none; width:100%; box-shadow:0 4px 0 #c0392b;" onclick="parentAction('reset')">🗑️ 清除紀錄</button>
+            </div>
+            <div style="font-size: 12px; color: #888; text-align: center; margin-top: 10px;">
+                💡 提示：使用「☁️ 雲端存檔」可以備份和還原進度
             </div>
         </div>
 
