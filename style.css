@@ -70,8 +70,12 @@ body {
     #game-container { transform: scale(1.2); transform-origin: center center; }
 }
 
-/* 平板 */
+/* ===== 手機 RWD ===== */
 @media (max-width: 600px) {
+
+    body { padding: 0; }
+
+    /* 遊戲主容器撐滿螢幕 */
     #game-container {
         width: 100vw;
         min-height: 100dvh;
@@ -79,18 +83,43 @@ body {
         border: none;
         outline: none;
         box-shadow: none;
-        padding: 15px;
-        padding-bottom: 30px;
+        padding: 10px 12px;
+        padding-bottom: env(safe-area-inset-bottom, 20px);
     }
-    body { padding: 0; }
-}
 
-/* 小手機 (iPhone SE 等) */
-@media (max-width: 390px) {
-    #game-container { font-size: 14px; }
-    .option-btn { font-size: 15px; padding: 12px; }
-    #question-box { width: 160px; height: 160px; }
-    h1 { font-size: 22px; }
+    /* 戰鬥區縮小高度，避免擠掉下方按鈕 */
+    #battle-scene { height: 200px; }
+
+    /* 英雄圖縮小 */
+    .character-img-hero { width: 100px; height: 100px; }
+
+    /* 魔龍圖限制最大寬度，避免太大 */
+    .character-img-dragon { max-width: 130px !important; width: 130px !important; }
+
+    /* 問題圖框縮小 */
+    #question-box { width: 150px; height: 150px; }
+    #question-area { margin: 8px 0; }
+
+    /* 字母按鈕縮小，確保不被切掉 */
+    .letter-btn { width: 44px; height: 44px; font-size: 20px; }
+    #letters-grid { gap: 8px; }
+    #word-display { font-size: 26px; margin-bottom: 10px; }
+
+    /* 選項按鈕 */
+    .option-btn { font-size: 16px; padding: 12px 8px; }
+
+    /* HP 字體縮小 */
+    .hp-hearts { font-size: 22px; }
+
+    /* 大廳 header 改垂直排列，避免三個元素擠在一行 */
+    .lobby-header { flex-direction: column; gap: 10px; padding: 12px 15px; text-align: center; }
+    .currency-box { font-size: 17px; gap: 12px; }
+
+    /* Tab 按鈕縮小，一行排得下 */
+    .tab-btn { padding: 8px 12px; font-size: 14px; border-radius: 15px; }
+
+    /* 大廳 padding 縮小 */
+    #gacha-lobby { padding: 10px; }
 }
 
 #level-tag { background: #a29bfe; color: white; padding: 8px 30px; border-radius: 0 0 20px 20px; font-weight: bold; position: absolute; top: 0; z-index: 5; }
