@@ -1,0 +1,413 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+    <meta charset="UTF-8">
+    <title>勇者與公主魔法：五大英雄奧義覺醒版</title>
+    <style>
+        :root { 
+            --main-pink: #ffb6c1; 
+            --dark-pink: #f06292;
+            --btn-grad: linear-gradient(180deg, #ffffff 0%, #ffc1e3 100%);
+            --text-purple: #8e44ad;
+            --fairy-bg: radial-gradient(circle, #fff0f5 0%, #e6e6fa 40%, #ffb6c1 100%);
+            --fairy-glow: 0 0 20px rgba(255, 255, 255, 0.8), 0 0 30px rgba(162, 155, 254, 0.5);
+            --gold-glow: 0 0 15px #ffd700, 0 0 25px rgba(255, 215, 0, 0.5);
+        }
+        
+        body { 
+            font-family: 'Segoe UI', "Microsoft JhengHei", sans-serif; 
+            background-image: url('assets/bg_main.png'); 
+            background-size: cover; background-position: center; background-attachment: fixed; background-repeat: no-repeat;
+            display: flex; flex-direction: column; align-items: center; 
+            min-height: 100vh; margin: 0; padding: 20px; overflow-y: auto; overflow-x: hidden; 
+        }
+
+        /* 啟動選角頁面 */
+        #start-screen {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(20, 10, 30, 0.9); display: flex; flex-direction: column; align-items: center; justify-content: center;
+            z-index: 5000; transition: opacity 1s;
+        }
+        .char-selector { display: flex; align-items: center; gap: 30px; margin-bottom: 40px; }
+        .nav-arrow { background: none; border: none; color: white; font-size: 50px; cursor: pointer; text-shadow: 0 0 10px white; }
+        #selected-char-preview { width: 180px; height: 180px; object-fit: contain; filter: drop-shadow(var(--fairy-glow)); transition: all 0.3s; }
+        .char-locked { filter: brightness(0) invert(1) opacity(0.3) !important; }
+        #char-status-text { color: #ffb6c1; font-weight: bold; margin-top: 10px; font-size: 18px; }
+
+        #central-start-btn { background: var(--btn-grad); color: #ff1493; font-weight: bold; padding: 15px 50px; border-radius: 50px; font-size: 28px; border: 5px solid #ffffff; cursor: pointer; }
+
+        /* 遊戲主容器 */
+        #game-container { 
+            width: 460px; height: 850px; background-size: cover; background-position: center;
+            border-radius: 50px; box-shadow: 0 20px 60px rgba(0, 0, 0, 0.6); 
+            position: relative; display: flex; flex-direction: column; align-items: center; padding: 25px; 
+            box-sizing: border-box; border: 10px solid #ffffff; outline: 2px solid #ffb6c1;
+            opacity: 0; transition: opacity 1s, background-image 0.5s ease; overflow: hidden;
+        }
+        .game-show { opacity: 1 !important; }
+
+        #level-tag { background: #a29bfe; color: white; padding: 8px 30px; border-radius: 0 0 20px 20px; font-weight: bold; position: absolute; top: 0; z-index: 5; }
+        h1 { color: #ffffff; font-size: 26px; margin: 40px 0 15px 0; user-select: none; text-shadow: 2px 2px 4px rgba(0,0,0,0.8); }
+
+        #top-controls { position: absolute; top: 15px; right: 20px; z-index: 100; }
+        #settings-btn { background: rgba(255,255,255,0.9); border: 2px solid #ffb6c1; border-radius: 50%; width: 45px; height: 45px; cursor: pointer; font-size: 20px; display: flex; align-items: center; justify-content: center; box-shadow: 0 4px 0 #ffb6c1; }
+
+        /* 戰鬥動畫舞台 */
+        #battle-scene { display: flex; justify-content: space-around; width: 100%; height: 280px; align-items: flex-end; margin-top: 20px; z-index: 2; position: relative; }
+        .actor-group { width: 45%; text-align: center; display: flex; flex-direction: column; align-items: center; justify-content: flex-end; }
+        .character-img-hero { width: 150px; height: 150px; object-fit: contain; filter: drop-shadow(0 5px 15px rgba(0,0,0,0.4)); transition: 0.3s; }
+        .character-img-dragon { object-fit: contain; filter: drop-shadow(0 5px 15px rgba(0,0,0,0.4)); transition: 0.5s; }
+        .hp-hearts { font-size: 20px; color: #ff6b6b; margin-top: 10px; text-shadow: 1px 1px 2px black; letter-spacing: -2px; }
+
+        #battle-msg { position: absolute; top: 10px; width: 100%; text-align: center; color: #ffd700; font-weight: bold; font-size: 22px; text-shadow: 2px 2px 4px black; pointer-events: none; opacity: 0; transition: 0.3s; z-index: 10; }
+        #magic-meteor { position: absolute; top: -150px; right: 50px; width: 120px; opacity: 0; z-index: 100; pointer-events: none; }
+
+        /* 修正：金光特效 */
+        .gold-sticker { border: 4px solid #ffd700 !important; box-shadow: var(--gold-glow) !important; animation: goldPulse 2s infinite; }
+        @keyframes goldPulse { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.05); } }
+
+        /* 攻擊動畫類型 */
+        .atk-dash { animation: dashAtk 0.8s; }
+        @keyframes dashAtk { 0% { transform: translateX(0); } 30% { transform: translateX(180px) scale(1.1); } 100% { transform: translateX(0); } }
+        .atk-jump { animation: jumpAtk 1s; }
+        @keyframes jumpAtk { 0% { transform: translate(0, 0); } 40% { transform: translate(80px, -140px) rotate(15deg); } 60% { transform: translate(180px, 0) rotate(0deg); } 100% { transform: translate(0, 0); } }
+        .atk-spin { animation: spinAtk 0.8s; }
+        @keyframes spinAtk { 0% { transform: rotate(0); } 50% { transform: translateX(180px) rotate(360deg); } 100% { transform: translateX(0) rotate(0); } }
+        .atk-glow { animation: castAnim 1.2s; }
+        @keyframes castAnim { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.3); filter: brightness(2); } }
+        .dragon-atk { animation: dragonDashAtk 0.8s; }
+        @keyframes dragonDashAtk { 0% { transform: translateX(0); } 30% { transform: translateX(-180px) scale(1.1); } 100% { transform: translateX(0); } }
+        .meteor-anim { animation: meteorFall 1s forwards; }
+        @keyframes meteorFall { 0% { transform: translate(100px, -100px); opacity: 0; } 30% { opacity: 1; } 70% { transform: translate(-100px, 220px); opacity: 1; filter: brightness(2); } 100% { transform: translate(-100px, 220px) scale(1.5); opacity: 0; } }
+        .hurt-shake { animation: hurtShake 0.4s; filter: brightness(1.5) sepia(0.5) !important; }
+        @keyframes hurtShake { 0%, 100% { transform: translateX(0); } 25% { transform: translateX(-10px); } 75% { transform: translateX(10px); } }
+
+        /* 題目區域 */
+        #question-area { position: relative; margin: 15px 0; z-index: 2; display: flex; flex-direction: column; align-items: center; }
+        #question-box { width: 180px; height: 180px; border: 8px solid #ffc1e3; border-radius: 35px; background: white; display: flex; align-items: center; justify-content: center; overflow: hidden; box-shadow: 0 10px 20px rgba(0,0,0,0.3); }
+        #question-img { max-width: 90%; max-height: 90%; object-fit: contain; }
+        #global-audio-btn { position: absolute; bottom: -5px; right: -5px; width: 50px; height: 50px; background: #a29bfe; border: 3px solid white; border-radius: 50%; cursor: pointer; font-size: 24px; display: flex; align-items: center; justify-content: center; box-shadow: 0 4px 8px rgba(0,0,0,0.3); z-index: 20; }
+
+        /* 第一關按鈕 */
+        #options-container { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; width: 100%; padding-bottom: 30px; margin-top: auto; z-index: 2; }
+        .option-btn { background: var(--btn-grad); border: 2px solid #ffffff; border-radius: 50px; color: var(--text-purple); padding: 15px; font-size: 18px; font-weight: bold; cursor: pointer; box-shadow: 0 4px 0 #f48fb1; }
+
+        /* 第二關拼字區域 */
+        #spelling-container { display: none; flex-direction: column; align-items: center; width: 100%; padding-bottom: 30px; margin-top: auto; z-index: 10; }
+        #word-display { font-size: 32px; font-weight: bold; color: #ffffff; letter-spacing: 5px; border-bottom: 4px dashed #ffb6c1; padding: 0 10px; text-shadow: 2px 2px 4px rgba(0,0,0,0.8); margin-bottom: 20px; min-height: 40px; }
+        #letters-grid { display: flex; flex-wrap: wrap; gap: 12px; justify-content: center; width: 100%; max-width: 400px; padding: 10px; }
+        .letter-btn { width: 54px; height: 54px; background: white; border: 3px solid #ffb6c1; border-radius: 12px; font-size: 24px; font-weight: bold; color: var(--dark-pink); cursor: pointer; box-shadow: 0 4px 0 #ffb6c1; display: flex; align-items: center; justify-content: center; }
+        .letter-correct { background: #eee !important; color: #ccc !important; box-shadow: none !important; transform: translateY(3px); pointer-events: none; }
+
+        /* 設定彈窗 */
+        .modal-overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.7); z-index: 2000; align-items: center; justify-content: center; }
+        #sticker-detail-modal { z-index: 4000; }
+        .modal-content { width: 420px; max-height: 90vh; background: white; border-radius: 35px; border: 8px solid #ffb6c1; padding: 25px; position: relative; overflow-y: auto; }
+        .close-btn { position: absolute; top: 15px; right: 15px; cursor: pointer; border: none; background: #ffb6c1; color: white; width: 35px; height: 35px; border-radius: 50%; font-weight: bold; }
+        
+        #sticker-book { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; margin: 15px 0; width: 100%; }
+        .sticker-slot { aspect-ratio: 1; border: 2px dashed #ffb6c1; border-radius: 12px; background: #fffafb; display: flex; align-items: center; justify-content: center; overflow: hidden; cursor: pointer; position: relative; }
+        .sticker-label { position: absolute; top: 2px; left: 4px; font-size: 10px; color: #f06292; font-weight: bold; background: rgba(255,255,255,0.7); border-radius: 4px; padding: 0 2px; z-index: 5; }
+
+        .log-table { width: 100%; border-collapse: collapse; font-size: 14px; }
+        .log-table td { padding: 10px; border-bottom: 1px solid #eee; text-align: center; color: #555; }
+        .log-thumb { width: 35px; height: 35px; object-fit: contain; background: #fff; border-radius: 5px; border: 1px solid #ffb6c1; }
+
+        /* 遊戲結束與勝利畫面 */
+        #victory-screen, #game-over-screen { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background-size: cover; background-position: center; display: none; flex-direction: column; align-items: center; justify-content: center; z-index: 3000; text-align: center; }
+    </style>
+</head>
+<body>
+
+<div id="start-screen">
+    <h1 style="font-size: 32px; color: #ff1493; text-shadow: var(--fairy-glow); margin-bottom: 30px;">挑選你的勇者</h1>
+    <div class="char-selector">
+        <button class="nav-arrow" onclick="changeHeroSelection(-1)">◀</button>
+        <div style="text-align: center;">
+            <img id="selected-char-preview" src="">
+            <div id="char-status-text">已準備就緒</div>
+        </div>
+        <button class="nav-arrow" onclick="changeHeroSelection(1)">▶</button>
+    </div>
+    <button id="central-start-btn" onclick="startGame()">點擊開始冒險 ✨</button>
+</div>
+
+<audio id="hero-atk-sfx"></audio>
+<audio id="hero-hurt-sfx"></audio>
+
+<audio id="my-bgm" src="bgm.mp3" loop></audio>
+<audio id="win-bgm" src="win.mp3" loop></audio>
+<audio id="fail-bgm" src="fail.mp3" loop></audio>
+<audio id="sfx-hit" src="hit.mp3"></audio>
+<audio id="sfx-meteor" src="my_skill3_sound.mp3"></audio>
+
+<div id="game-over-screen" style="background-image: url('assets/bg_fail.png');">
+    <h1 style="font-size: 50px; color: #ff7675; text-shadow: 0 0 20px black;">💀 再接再厲！ 💀</h1>
+    <button class="big-btn" style="padding: 15px 50px; font-size: 24px; border-radius: 50px; background: #ff69b4; color: white; border: none; cursor: pointer; margin-top: 30px;" onclick="restartFromFailure()">再次挑戰 ⚔️</button>
+</div>
+
+<div id="victory-screen" style="background-image: url('assets/bg_victory.png');">
+    <h1 style="font-size: 40px; color: #ff1493; text-shadow: 0 0 10px white;">✨ 獲得新貼紙！ ✨</h1>
+    <div id="new-sticker-display"></div>
+    <button class="big-btn" style="padding: 15px 50px; font-size: 24px; border-radius: 50px; background: #ff69b4; color: white; border: none; cursor: pointer; margin-top: 30px;" onclick="location.reload()">回村莊</button>
+</div>
+
+<div id="sticker-detail-modal" class="modal-overlay" onclick="this.style.display='none'">
+    <div class="modal-content" style="text-align:center;" onclick="event.stopPropagation()">
+        <button class="close-btn" onclick="document.getElementById('sticker-detail-modal').style.display='none'">✕</button>
+        <img id="detail-img" src="" style="width:200px; height:200px; object-fit:contain; margin-bottom:15px;">
+        <h2 id="detail-title" style="color:var(--text-purple);"></h2>
+        <p id="detail-desc" style="background:#fff0f5; padding:15px; border-radius:20px; text-align:left;"></p>
+    </div>
+</div>
+
+<div id="settings-modal" class="modal-overlay">
+    <div class="modal-content">
+        <button class="close-btn" onclick="toggleSettings(false)">✕</button>
+        <h2 style="color:var(--text-purple); text-align:center; margin-top:0;">⚙️ 冒險設定</h2>
+        <div style="margin-bottom: 15px;">
+            <div style="font-size: 14px; font-weight: bold; color: #f06292; display: flex; justify-content: space-between;"><span>🎵 背景音樂 (BGM)</span><span id="bgm-vol-val">30%</span></div>
+            <input type="range" min="0" max="1" step="0.01" value="0.3" oninput="updateBgmVolume(this.value)">
+        </div>
+        <div style="margin-bottom: 15px;">
+            <div style="font-size: 14px; font-weight: bold; color: #f06292; display: flex; justify-content: space-between;"><span>🔊 英文發音 (Voice)</span><span id="voice-vol-val">100%</span></div>
+            <input type="range" min="0" max="1" step="0.1" value="1.0" oninput="updateVoiceVolume(this.value)">
+        </div>
+        <button id="bgm-toggle-settings" onclick="toggleMusic()" style="background:#ffeaa7; width:100%; border-radius:12px; border:none; padding:10px; font-weight:bold; margin-bottom:15px;">音樂：播放中</button>
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 20px;">
+            <button onclick="clearLog()" style="background:#b2bec3; color:white; border:none; padding:10px; border-radius:12px; font-weight:bold;">🗑️ 清除戰報</button>
+            <button onclick="resetStickers()" style="background:#ff7675; color:white; border:none; padding:10px; border-radius:12px; font-weight:bold;">🔥 重設資料</button>
+        </div>
+        <hr style="border:1px dashed #ffb6c1;">
+        <h3 style="color:var(--dark-pink); margin-bottom:10px;">👸 收集貼紙本</h3>
+        <div id="sticker-book"></div>
+        <div style="display:flex; justify-content:center; gap:10px; align-items:center; margin-top: 15px;">
+            <button onclick="changePage(-1)" style="background:#a29bfe; color:white; border:none; padding:5px 12px; border-radius:10px; font-size:12px;">上一頁</button>
+            <span id="page-num" style="font-weight:bold; color:var(--text-purple); font-size:14px;">第 1 / 3 頁</span>
+            <button onclick="changePage(1)" style="background:#a29bfe; color:white; border:none; padding:5px 12px; border-radius:10px; font-size:12px;">下一頁</button>
+        </div>
+        <hr style="border:1px dashed #ffb6c1;">
+        <h3 style="color:var(--dark-pink); margin-bottom:10px;">📊 英雄戰報</h3>
+        <div id="log-body-container" style="max-height: 200px; overflow-y: auto;">
+            <table class="log-table"><tbody id="log-body"></tbody></table>
+        </div>
+    </div>
+</div>
+
+<div id="game-container">
+    <div id="level-tag">第一關</div>
+    <div id="top-controls"><button id="settings-btn" onclick="toggleSettings(true)">⚙️</button></div>
+    <h1>勇者與公主魔法</h1>
+    <div id="battle-scene">
+        <div id="battle-msg"></div>
+        <img id="magic-meteor" src="assets/meteor.png">
+        <div class="actor-group">
+            <img id="hero-img" src="" class="character-img-hero">
+            <div id="prince-hp" class="hp-hearts"></div>
+        </div>
+        <div class="actor-group">
+            <img id="dragon-img" src="dragon.png" class="character-img-dragon">
+            <div id="dragon-hp" class="hp-hearts"></div>
+        </div>
+    </div>
+    <div id="question-area">
+        <div id="question-box"><img id="question-img" src=""></div>
+        <button id="global-audio-btn" onclick="speakTargetWord()">🔊</button>
+    </div>
+    <div id="options-container"></div>
+    <div id="spelling-container">
+        <div id="word-display"></div>
+        <div id="letters-grid"></div>
+    </div>
+</div>
+
+<script>
+    const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+    let studyLog = JSON.parse(localStorage.getItem('dragonGameLogV4')) || {};
+    let stickerLog = JSON.parse(localStorage.getItem('princessStickersV1')) || [];
+    let isMusicPlaying = false, currentPage = 0, voiceVolume = 1.0;
+    const itemsPerPage = 8;
+    const bgm = document.getElementById('my-bgm'), winBgm = document.getElementById('win-bgm'), failBgm = document.getElementById('fail-bgm');
+
+    // 五大英雄配置
+    const heroes = [
+        { folder: 'hero1', name: '魔法少女', unlocked: true, skills: ["魔法射線", "粉紅風暴", "終極星辰"], anims: ["atk-dash", "atk-glow", "atk-glow"] },
+        { folder: 'hero2', name: '初心勇者', unlocked: true, skills: ["快速斬擊", "旋風迴旋", "龍神隕落"], anims: ["atk-dash", "atk-spin", "atk-glow"] },
+        { folder: 'hero3', name: '閃亮精靈', unlocked: false, skills: ["閃光一擊", "極光跳躍", "天降恆星"], anims: ["atk-dash", "atk-jump", "atk-glow"], stickerIdx: 0 },
+        { folder: 'hero4', name: '寒冰精靈', unlocked: false, skills: ["冰凌突刺", "寒冰迴旋", "絕對零度"], anims: ["atk-dash", "atk-spin", "atk-glow"], stickerIdx: 1 },
+        { folder: 'hero5', name: '音律精靈', unlocked: false, skills: ["音波震撼", "節奏跳躍", "毀滅交響"], anims: ["atk-dash", "atk-jump", "atk-glow"], stickerIdx: 2 }
+    ];
+    let selectedHeroIdx = 0;
+
+    const wordList = ["APPLE", "BANANA", "PEAR", "BREAD", "CARROT", "MANGO", "RICE", "VEGETABLES", "GUAVA", "PAPAYA", "GRAPE", "CHEESE", "FRUIT", "POTATO", "ONION"];
+    let currentLvl = 1, pHP = 5, dHP = 2, currentWord = "", isWait = false, spellingText = "";
+
+    function checkUnlocks() { heroes.forEach(h => { if(h.stickerIdx !== undefined) h.unlocked = stickerLog.includes(h.stickerIdx); }); }
+
+    function changeHeroSelection(dir) {
+        selectedHeroIdx = (selectedHeroIdx + dir + heroes.length) % heroes.length;
+        const h = heroes[selectedHeroIdx];
+        document.getElementById('selected-char-preview').src = `${h.folder}/hero.png`;
+        const status = document.getElementById('char-status-text');
+        if(h.unlocked) { 
+            document.getElementById('selected-char-preview').classList.remove('char-locked'); 
+            status.innerText = h.name; status.style.color = "#ffb6c1"; 
+            document.getElementById('central-start-btn').style.display = "block";
+        } else { 
+            document.getElementById('selected-char-preview').classList.add('char-locked'); 
+            status.innerText = "🔒 尚未解鎖"; status.style.color = "#aaa"; 
+            document.getElementById('central-start-btn').style.display = "none";
+        }
+    }
+
+    function startGame() {
+        if (audioCtx.state === 'suspended') audioCtx.resume();
+        const hero = heroes[selectedHeroIdx];
+        document.getElementById('hero-img').src = `${hero.folder}/hero.png`;
+        document.getElementById('hero-atk-sfx').src = `${hero.folder}/atk.mp3`;
+        document.getElementById('hero-hurt-sfx').src = `${hero.folder}/hurt.mp3`;
+
+        document.getElementById('start-screen').style.opacity = '0';
+        document.getElementById('game-container').classList.add('game-show');
+        bgm.play().then(() => isMusicPlaying = true).catch(e => null);
+        pHP = 5; dHP = 2; currentLvl = 1;
+        setTimeout(() => { updateHP(); updateLogUI(); updateStickerUI(); nextTask(); document.getElementById('start-screen').style.display = 'none'; }, 1000);
+    }
+
+    // 修正：重新挑戰功能
+    function restartFromFailure() {
+        pHP = 5; dHP = 2; currentLvl = 1; isWait = false;
+        failBgm.pause(); failBgm.currentTime = 0;
+        if(isMusicPlaying) bgm.play();
+        document.getElementById('game-over-screen').style.display = 'none';
+        updateHP(); nextTask();
+    }
+
+    function toggleSettings(show) { document.getElementById('settings-modal').style.display = show ? 'flex' : 'none'; if(show) { updateStickerUI(); updateLogUI(); } }
+    function updateBgmVolume(val) { bgm.volume = val; winBgm.volume = val; failBgm.volume = val; document.getElementById('bgm-vol-val').innerText = Math.round(val * 100) + "%"; }
+    function updateVoiceVolume(val) { voiceVolume = val; document.getElementById('voice-vol-val').innerText = Math.round(val * 100) + "%"; }
+    function toggleMusic() { isMusicPlaying = !isMusicPlaying; isMusicPlaying ? bgm.play() : bgm.pause(); document.getElementById('bgm-toggle-settings').innerText = isMusicPlaying ? "音樂：播放中" : "音樂：已暫停"; }
+    function resetStickers() { if(confirm("確定要重設所有資料嗎？")) { localStorage.clear(); location.reload(); } }
+    function changePage(dir) { currentPage = Math.max(0, Math.min(currentPage + dir, 2)); updateStickerUI(); }
+
+    function updateStickerUI() {
+        const book = document.getElementById('sticker-book'); book.innerHTML = "";
+        const start = currentPage * itemsPerPage;
+        for (let i = 0; i < itemsPerPage; i++) {
+            let idx = start + i; if (idx >= 20) break;
+            const slot = document.createElement('div'); slot.className = 'sticker-slot';
+            // 修正：前三張金光
+            if(idx < 3) slot.classList.add('gold-sticker');
+            const label = document.createElement('span'); label.className = 'sticker-label'; label.innerText = (idx + 1); slot.appendChild(label);
+            if (stickerLog.includes(idx)) {
+                slot.innerHTML += `<img src="sticker/${idx+1}.png" style="width:90%">`;
+                slot.onclick = () => {
+                    document.getElementById('sticker-detail-modal').style.display = 'flex';
+                    document.getElementById('detail-img').src = `sticker/${idx+1}.png`;
+                    document.getElementById('detail-title').innerText = `公主貼紙 #${idx+1}`;
+                    document.getElementById('detail-desc').innerText = "收集更多貼紙來解鎖神祕英雄！";
+                };
+            } else { slot.innerHTML += "？"; }
+            book.appendChild(slot);
+        }
+        document.getElementById('page-num').innerText = `第 ${currentPage + 1} / 3 頁`;
+    }
+
+    function speak(t, lang) { const u = new SpeechSynthesisUtterance(t); u.lang = lang === 'zh' ? 'zh-TW' : 'en-US'; u.rate = 0.8; u.volume = voiceVolume; window.speechSynthesis.speak(u); }
+    function speakTargetWord() { if(currentWord) speak(currentWord, 'en'); }
+
+    function updateHP() {
+        document.getElementById('prince-hp').innerText = "💖".repeat(pHP);
+        document.getElementById('dragon-hp').innerText = "💖".repeat(Math.max(0, dHP));
+        if(pHP <= 0 && !isWait) { isWait = true; bgm.pause(); failBgm.play(); setTimeout(() => { document.getElementById('game-over-screen').style.display = 'flex'; }, 1000); }
+    }
+
+    function nextTask() {
+        if(dHP <= 0 || pHP <= 0) return; isWait = false;
+        const dragonImg = document.getElementById('dragon-img'), qImg = document.getElementById('question-img'), container = document.getElementById('game-container');
+        if(currentLvl === 2) { 
+            document.getElementById('level-tag').innerText = "第二關：決戰魔龍";
+            container.style.backgroundImage = "linear-gradient(rgba(0,0,0,0.3), rgba(0,0,0,0.3)), url('assets/bg_battle2.png')";
+            dragonImg.src = "dragon2.png"; dragonImg.style.width = "200px";
+            document.getElementById('options-container').style.display = 'none';
+            document.getElementById('spelling-container').style.display = 'flex';
+        } else {
+            document.getElementById('level-tag').innerText = "第一關：魔法集氣";
+            container.style.backgroundImage = "linear-gradient(rgba(0,0,0,0.3), rgba(0,0,0,0.3)), url('assets/bg_battle1.png')";
+            dragonImg.src = "dragon.png"; dragonImg.style.width = "160px";
+            document.getElementById('options-container').style.display = 'grid';
+            document.getElementById('spelling-container').style.display = 'none';
+        }
+        currentWord = wordList[Math.floor(Math.random()*wordList.length)];
+        qImg.src = `assets/${currentWord.toLowerCase()}.png`;
+        if(currentLvl === 1) {
+            let opts = [currentWord]; while(opts.length < 4) { let r = wordList[Math.floor(Math.random()*wordList.length)]; if(!opts.includes(r)) opts.push(r); }
+            opts.sort(() => Math.random() - 0.5);
+            const optCont = document.getElementById('options-container'); optCont.innerHTML = "";
+            opts.forEach(o => { const b = document.createElement('button'); b.className = 'option-btn'; b.innerText = o; b.onclick = () => { if(!isWait) checkChoice(o === currentWord); }; optCont.appendChild(b); });
+        } else { startSpell(); }
+    }
+
+    function checkChoice(isCorrect) {
+        if(isCorrect) {
+            isWait = true; let dmg = 1, skillIdx = 0;
+            if(currentLvl === 2) { const rnd = Math.random(); if(rnd > 0.6) { dmg = 3; skillIdx = 2; } else if(rnd > 0.3) { dmg = 2; skillIdx = 1; } }
+            dHP -= dmg; studyLog[currentWord] = studyLog[currentWord] || {success: 0, fail: 0}; studyLog[currentWord].success++; localStorage.setItem('dragonGameLogV4', JSON.stringify(studyLog));
+            const hero = heroes[selectedHeroIdx]; showBattleMsg(`${hero.name}：${hero.skills[skillIdx]}！`); speak(currentWord, 'en'); feedback(true, skillIdx);
+            setTimeout(() => { if(dHP <= 0) { if(currentLvl === 1) { currentLvl = 2; dHP = 4; speak("龍進化了！進入決戰！", "zh"); nextTask(); updateHP(); } else { triggerVictory(); } } else { nextTask(); } }, 2500);
+        } else { studyLog[currentWord] = studyLog[currentWord] || {success: 0, fail: 0}; studyLog[currentWord].fail++; localStorage.setItem('dragonGameLogV4', JSON.stringify(studyLog)); pHP--; feedback(false); updateHP(); speak("再試一次", 'zh'); }
+    }
+
+    function showBattleMsg(txt) { const m = document.getElementById('battle-msg'); m.innerText = txt; m.style.opacity = 1; setTimeout(() => m.style.opacity = 0, 2000); }
+
+    function feedback(isCorrect, skillIdx = 0) {
+        const h = document.getElementById('hero-img'), d = document.getElementById('dragon-img'), m = document.getElementById('magic-meteor');
+        const heroConfig = heroes[selectedHeroIdx];
+        if(isCorrect) {
+            h.classList.add(heroConfig.anims[skillIdx]);
+            const atkSfx = document.getElementById('hero-atk-sfx'); atkSfx.currentTime = 0; atkSfx.play();
+            if(skillIdx === 2) { setTimeout(() => { m.classList.add('meteor-anim'); document.getElementById('sfx-meteor').play(); }, 200); }
+            setTimeout(() => { d.classList.add('hurt-shake'); document.getElementById('sfx-hit').play(); updateHP(); }, skillIdx === 2 ? 800 : 300);
+        } else {
+            d.classList.add('dragon-atk');
+            setTimeout(() => { h.classList.add('hurt-shake'); document.getElementById('hero-hurt-sfx').play(); updateHP(); }, 300);
+        }
+        setTimeout(() => { h.classList.remove('atk-dash', 'atk-jump', 'atk-spin', 'atk-glow', 'hurt-shake'); d.classList.remove('hurt-shake', 'dragon-atk'); m.classList.remove('meteor-anim'); }, 1500);
+    }
+
+    function startSpell() {
+        spellingText = ""; document.getElementById('word-display').innerText = "_ ".repeat(currentWord.length);
+        const grid = document.getElementById('letters-grid'); grid.innerHTML = "";
+        currentWord.split('').sort(()=>Math.random()-0.5).forEach(l => {
+            const b = document.createElement('button'); b.className = 'letter-btn'; b.innerText = l;
+            b.onclick = () => {
+                if(isWait || b.classList.contains('letter-correct')) return;
+                if(l === currentWord[spellingText.length]) {
+                    spellingText += l; speak(l, 'en'); b.classList.add('letter-correct'); 
+                    document.getElementById('word-display').innerText = spellingText.split('').join(' ') + " _".repeat(currentWord.length - spellingText.length);
+                    if(spellingText === currentWord) checkChoice(true);
+                } else { pHP--; feedback(false); updateHP(); }
+            };
+            grid.appendChild(b);
+        });
+    }
+
+    function triggerVictory() {
+        isWait = true; document.getElementById('dragon-img').style.opacity = 0;
+        bgm.pause(); winBgm.play();
+        let newId = Math.floor(Math.random() * 20); if(!stickerLog.includes(newId)) { stickerLog.push(newId); localStorage.setItem('princessStickersV1', JSON.stringify(stickerLog)); }
+        setTimeout(() => { document.getElementById('victory-screen').style.display = 'flex'; document.getElementById('new-sticker-display').innerHTML = `<img src="sticker/${newId+1}.png" style="width:220px;">`; }, 1500);
+    }
+
+    function updateLogUI() {
+        const tbody = document.getElementById('log-body'); tbody.innerHTML = "";
+        const words = Object.keys(studyLog).sort((a,b) => studyLog[b].fail - studyLog[a].fail);
+        words.forEach(word => { const data = studyLog[word]; tbody.innerHTML += `<tr><td>${word}</td><td>✔ ${data.success} ✘ ${data.fail}</td></tr>`; });
+    }
+
+    function clearLog() { if(confirm("清除紀錄？")) { studyLog = {}; localStorage.removeItem('dragonGameLogV4'); updateLogUI(); } }
+
+    window.onload = () => { checkUnlocks(); changeHeroSelection(0); updateStickerUI(); updateLogUI(); };
+</script>
+</body>
+</html>
