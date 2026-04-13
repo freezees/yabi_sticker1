@@ -1,4 +1,4 @@
-// cloudsave.js - 雲端存檔功能 (完整版)
+// cloudsave.js - 雲端存檔功能 (設定頁面版)
 
 const CLOUD_API_URL = 'https://script.google.com/macros/s/AKfycbyHqMyyHbR2OrTOZ2qQtECKLyJAd29Bgj6ftSC1JomtxzmPBn7TNFSkxl8GlfpoglZE9g/exec';
 
@@ -35,7 +35,6 @@ function showCloudMsg(msg) {
         showBattleMsg(msg);
     } else {
         console.log(msg);
-        // 備用提示方式
         const msgDiv = document.getElementById('battle-msg');
         if (msgDiv) {
             msgDiv.innerText = msg;
@@ -87,7 +86,6 @@ function jsonpRequest(params) {
 async function syncToCloud() {
     const playerId = getPlayerId();
     
-    // 只儲存貼紙資料和單字庫設定，不儲存學習紀錄
     const saveData = {
         gachaData: window.gachaData,
         activeLessons: activeLessons,
@@ -137,7 +135,6 @@ async function syncFromCloud() {
             const saveTime = result.lastSaveTime ? new Date(result.lastSaveTime).toLocaleString() : '未知';
             
             if (confirm(`找到雲端存檔！\n最後儲存時間：${saveTime}\n\n要覆蓋目前的進度嗎？`)) {
-                // 覆蓋本地存檔（只覆蓋貼紙資料和單字庫）
                 if (result.data.gachaData) {
                     window.gachaData = result.data.gachaData;
                     localStorage.setItem('gachaSystemV5', JSON.stringify(window.gachaData));
@@ -170,35 +167,45 @@ async function syncFromCloud() {
 }
 
 // ============================================
-// 綁定雲端按鈕到主畫面
+// 綁定雲端按鈕（在設定頁面中）
 // ============================================
 
 function setupCloudButtons() {
-    const saveBtn = document.getElementById('cloud-save-btn');
-    const loadBtn = document.getElementById('cloud-load-btn');
+    // 等待設定頁面的按鈕出現
+    let retryCount = 0;
+    const maxRetries = 30;
     
-    if (saveBtn && loadBtn) {
-        // 移除舊的事件監聽器（避免重複綁定）
-        const newSaveBtn = saveBtn.cloneNode(true);
-        const newLoadBtn = loadBtn.cloneNode(true);
-        saveBtn.parentNode.replaceChild(newSaveBtn, saveBtn);
-        loadBtn.parentNode.replaceChild(newLoadBtn, loadBtn);
+    const tryBindButtons = setInterval(() => {
+        const saveBtn = document.getElementById('cloud-save-btn');
+        const loadBtn = document.getElementById('cloud-load-btn');
         
-        newSaveBtn.onclick = (e) => {
-            e.stopPropagation();
-            syncToCloud();
-        };
-        newLoadBtn.onclick = (e) => {
-            e.stopPropagation();
-            syncFromCloud();
-        };
+        if (saveBtn && loadBtn) {
+            clearInterval(tryBindButtons);
+            
+            // 移除舊的事件監聽器（避免重複綁定）
+            const newSaveBtn = saveBtn.cloneNode(true);
+            const newLoadBtn = loadBtn.cloneNode(true);
+            saveBtn.parentNode.replaceChild(newSaveBtn, saveBtn);
+            loadBtn.parentNode.replaceChild(newLoadBtn, loadBtn);
+            
+            newSaveBtn.onclick = (e) => {
+                e.stopPropagation();
+                syncToCloud();
+            };
+            newLoadBtn.onclick = (e) => {
+                e.stopPropagation();
+                syncFromCloud();
+            };
+            
+            console.log('✅ 雲端按鈕已綁定到設定頁面');
+        }
         
-        console.log('✅ 雲端按鈕已綁定到主畫面');
-    } else {
-        console.warn('⚠️ 找不到雲端按鈕元素，請確認 HTML 中有 id 為 cloud-save-btn 和 cloud-load-btn 的按鈕');
-        // 重試一次
-        setTimeout(setupCloudButtons, 500);
-    }
+        retryCount++;
+        if (retryCount >= maxRetries) {
+            clearInterval(tryBindButtons);
+            console.warn('⚠️ 找不到雲端按鈕元素');
+        }
+    }, 200);
 }
 
 // ============================================
