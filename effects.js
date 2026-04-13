@@ -104,12 +104,12 @@ function feedback(isCorrect, skillIdx = 0) {
                 setTimeout(() => {
                     new Audio(`${heroConfig.folder}/atk3_hit.mp3`).play().catch(e => {}); let explodeSfx = new Audio(`${heroConfig.folder}/gold_explosion.mp3`); explodeSfx.volume=0.8; explodeSfx.play().catch(e => {});
                     showDamage(false, dmgValue, 3000, critValue); 
-                    if(gameContainer) gameContainer.classList.add('severe-shake');
+                    if(battleScene) battleScene.classList.add('severe-shake');
                     let ex = document.createElement('img'); ex.className = 'gold-explosion-fx'; ex.src = `${heroConfig.folder}/gold_explosion.png`; ex.style.zIndex = '20'; battleScene.appendChild(ex); setTimeout(()=> ex.remove(), 1000);
                     for(let i=0; i<30; i++) { let p = document.createElement('div'); p.className = 'lightning-particle'; p.style.cssText = `left:425px; bottom:150px; --pdx:${(Math.random()-0.5)*250}px; --pdy:${(Math.random()-0.5)*250}px; animation-delay:${Math.random()*0.2}s; z-index:20;`; battleScene.appendChild(p); setTimeout(()=> p.remove(), 1200); }
                     d.src = dHP <= 0 ? `${dFolder}/dead.png` : `${dFolder}/hurt.png`; d.classList.add('dragon-shock', 'dragon-front'); new Audio(`${dFolder}/hurt.mp3`).play().catch(e => {}); 
                     updateHP(); 
-                    setTimeout(() => { if(gameContainer) gameContainer.classList.remove('severe-shake'); d.classList.remove('dragon-shock', 'dragon-front'); }, 1000);
+                    setTimeout(() => { if(battleScene) battleScene.classList.remove('severe-shake'); d.classList.remove('dragon-shock', 'dragon-front'); }, 1000);
                 }, 1500);
                 setTimeout(() => { gsGroup.style.transition = 'opacity 0.5s ease-out'; gsGroup.style.opacity = '0'; darkBg.style.opacity = '0'; }, 3200);
                 setTimeout(() => { mc.remove(); gsGroup.remove(); darkBg.remove(); h.style.position = ''; h.style.zIndex = ''; d.style.position = ''; d.style.zIndex = ''; if(battleScene) battleScene.style.zIndex = ''; }, 3700);

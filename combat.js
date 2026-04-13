@@ -11,7 +11,8 @@ function startGame() {
     if(!Array.isArray(activeLessons) || activeLessons.length === 0) activeLessons = ["lesson1"];
     buildCurrentWordList();
 
-    calcBuffs(); pHP = window.maxPHP; hintsLeft = window.maxHints; currentLvl = 1; dHP = 5;
+    calcBuffs(); pHP = window.maxPHP; hintsLeft = window.maxHints; currentLvl = 1;
+    dHP = (window.gachaData && window.gachaData.coins >= 99999) ? 1 : 5;
     window.hasUsedUlt = false; 
     
     const hero = heroes[selectedHeroIdx];
@@ -51,7 +52,9 @@ function restartFromFailure() {
     if(!Array.isArray(activeLessons) || activeLessons.length === 0) activeLessons = ["lesson1"];
     buildCurrentWordList();
 
-    calcBuffs(); pHP = window.maxPHP; dHP = 5; currentLvl = 1; isWait = false; hintsLeft = window.maxHints;
+    calcBuffs(); pHP = window.maxPHP;
+    dHP = (window.gachaData && window.gachaData.coins >= 99999) ? 1 : 5;
+    currentLvl = 1; isWait = false; hintsLeft = window.maxHints;
     window.hasUsedUlt = false; 
     
     failBgm.pause(); failBgm.currentTime = 0; bgm.volume = 0.1; if(isMusicPlaying) bgm.play();
@@ -79,11 +82,15 @@ function nextTask() {
     const dragonImg = document.getElementById('dragon-img'), qImg = document.getElementById('question-img'), container = document.getElementById('game-container'), lvlTag = document.getElementById('level-tag');
     const optCont = document.getElementById('options-container'), spellCont = document.getElementById('spelling-container'), testPanel = document.getElementById('test-panel');
 
+    // 判斷是否為測試模式 (貼紙全滿星)
+    const isTestMode = window.gachaData && window.gachaData.coins >= 99999;
+
     if(currentLvl === 2) { 
         if(lvlTag) lvlTag.innerText = "第二關：決戰魔龍";
         if(container) container.style.backgroundImage = "linear-gradient(rgba(0,0,0,0.3), rgba(0,0,0,0.3)), url('assets/bg_battle2.png')";
         if(dragonImg) { dragonImg.dataset.retried = ""; dragonImg.src = "dragon2/dragon.png"; dragonImg.onerror = function() { if(!this.dataset.retried){ this.dataset.retried="true"; this.src = "dragon2/Dragon.png"; } }; dragonImg.style.width = "240px"; }
-        if(optCont) optCont.style.display = 'none'; if(spellCont) spellCont.style.display = 'flex'; if(testPanel) testPanel.style.display = 'block';
+        if(optCont) optCont.style.display = 'none'; if(spellCont) spellCont.style.display = 'flex';
+        if(testPanel) testPanel.style.display = isTestMode ? 'block' : 'none';
     } else {
         if(lvlTag) lvlTag.innerText = "第一關：魔法集氣";
         if(container) container.style.backgroundImage = "linear-gradient(rgba(0,0,0,0.3), rgba(0,0,0,0.3)), url('assets/bg_battle1.png')";

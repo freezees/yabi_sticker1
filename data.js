@@ -1,18 +1,6 @@
 // data.js
 const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
 
-// ★ 自動修復存檔機制：防止舊資料格式錯誤導致遊戲卡死
-let studyLog;
-try { studyLog = JSON.parse(localStorage.getItem('dragonGameLogV5')) || {}; } catch(e) { studyLog = {}; }
-
-let gachaData;
-try { gachaData = JSON.parse(localStorage.getItem('gachaSystemV5')) || {}; } catch(e) { gachaData = {}; }
-if(!gachaData.collection) gachaData.collection = [0, 1];
-if(!gachaData.stars) gachaData.stars = {0:0, 1:0};
-if(!gachaData.wall) gachaData.wall = [null, null, null, null, null];
-if(typeof gachaData.coins !== 'number') gachaData.coins = 0;
-if(typeof gachaData.dust !== 'number') gachaData.dust = 0;
-
 let isMusicPlaying = false, voiceVolume = 1.0, isWait = false;
 const bgm = document.getElementById('my-bgm'), winBgm = document.getElementById('win-bgm'), failBgm = document.getElementById('fail-bgm');
 let lobbyBgm = new Audio('Gacha_machine.mp3'); lobbyBgm.loop = true;
@@ -203,7 +191,4 @@ for(let i=0; i<200; i++) {
 }
 
 let currentLvl = 1, currentWord = "", spellingText = "";
-let maxPHP = 5, maxHints = 3;
-let hpBuffAmt = 0, hintBuffAmt = 0;
-let dmgBonus = [0, 0, 0]; 
 let pHP = 5, dHP = 5, hintsLeft = 3;

@@ -178,18 +178,9 @@ function ensureSettingsModal() {
 function safeInitGame() {
     if(window.gameInitialized) return;
     window.gameInitialized = true;
-    ensureSettingsModal(); createLobbyUI(); checkUnlocks(); changeHeroSelection(0); 
+    ensureSettingsModal(); createLobbyUI(); checkUnlocks(); changeHeroSelection(0);
     let audioBtn = document.getElementById('global-audio-btn');
-    if(!audioBtn) {
-        let qArea = document.getElementById('question-area');
-        if(qArea) { audioBtn = document.createElement('button'); audioBtn.id = 'global-audio-btn'; audioBtn.innerHTML = '🔊'; audioBtn.style.cssText = "position: absolute; bottom: -5px; right: -5px; width: 50px; height: 50px; background: #a29bfe; border: 3px solid white; border-radius: 50%; cursor: pointer; font-size: 24px; display: flex; align-items: center; justify-content: center; box-shadow: 0 4px 8px rgba(0,0,0,0.3); z-index: 20;"; qArea.appendChild(audioBtn); }
-    }
     if(audioBtn) audioBtn.onclick = speakTargetWord;
-    if(!document.getElementById('test-panel')) {
-        let tp = document.createElement('div'); tp.id = 'test-panel';
-        tp.innerHTML = `<div style="font-size:12px; font-weight:bold; color:#a29bfe; margin-bottom:5px; text-align:center;">🛠️ 測試專用</div><button class="option-btn" style="padding:5px 10px; font-size:12px; margin-bottom:5px; width:100%;" onclick="forceSkill(0)">招1</button><button class="option-btn" style="padding:5px 10px; font-size:12px; margin-bottom:5px; width:100%;" onclick="forceSkill(1)">招2</button><button class="option-btn" style="padding:5px 10px; font-size:12px; margin-bottom:5px; width:100%;" onclick="forceSkill(2)">招3</button><button class="option-btn" style="padding:5px 10px; font-size:12px; width:100%; color:#d35400;" onclick="forceSkill(3)">⭐ 招4</button>`;
-        let gameCont = document.getElementById('game-container'); if(gameCont) gameCont.appendChild(tp);
-    }
 }
 document.addEventListener('DOMContentLoaded', safeInitGame);
 if (document.readyState === 'complete' || document.readyState === 'interactive') { setTimeout(safeInitGame, 100); }

@@ -65,8 +65,32 @@ body {
 }
 .game-show { opacity: 1 !important; }
 
+/* 大螢幕放大 */
 @media (min-width: 1200px) and (min-height: 900px) {
     #game-container { transform: scale(1.2); transform-origin: center center; }
+}
+
+/* 平板 */
+@media (max-width: 600px) {
+    #game-container {
+        width: 100vw;
+        min-height: 100dvh;
+        border-radius: 0;
+        border: none;
+        outline: none;
+        box-shadow: none;
+        padding: 15px;
+        padding-bottom: 30px;
+    }
+    body { padding: 0; }
+}
+
+/* 小手機 (iPhone SE 等) */
+@media (max-width: 390px) {
+    #game-container { font-size: 14px; }
+    .option-btn { font-size: 15px; padding: 12px; }
+    #question-box { width: 160px; height: 160px; }
+    h1 { font-size: 22px; }
 }
 
 #level-tag { background: #a29bfe; color: white; padding: 8px 30px; border-radius: 0 0 20px 20px; font-weight: bold; position: absolute; top: 0; z-index: 5; }
