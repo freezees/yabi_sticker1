@@ -1,4 +1,4 @@
-// cloudsave.js - 雲端存檔功能 (設定頁面版)
+// cloudsave.js - 雲端存檔功能 (等待設定頁面版)
 
 const CLOUD_API_URL = 'https://script.google.com/macros/s/AKfycbyHqMyyHbR2OrTOZ2qQtECKLyJAd29Bgj6ftSC1JomtxzmPBn7TNFSkxl8GlfpoglZE9g/exec';
 
@@ -167,71 +167,109 @@ async function syncFromCloud() {
 }
 
 // ============================================
-// 綁定雲端按鈕（在設定頁面中）
+// 在設定頁面中加入雲端按鈕
 // ============================================
 
-function setupCloudButtons() {
-    // 等待設定頁面的按鈕出現
-    let retryCount = 0;
-    const maxRetries = 30;
+function injectCloudButtons() {
+    // 檢查按鈕是否已經存在
+    if (document.getElementById('cloud-save-btn')) {
+        console.log('✅ 雲端按鈕已存在');
+        return;
+    }
     
-    const tryBindButtons = setInterval(() => {
-        const saveBtn = document.getElementById('cloud-save-btn');
-        const loadBtn = document.getElementById('cloud-load-btn');
-        
-        if (saveBtn && loadBtn) {
-            clearInterval(tryBindButtons);
-            
-            // 移除舊的事件監聽器（避免重複綁定）
-            const newSaveBtn = saveBtn.cloneNode(true);
-            const newLoadBtn = loadBtn.cloneNode(true);
-            saveBtn.parentNode.replaceChild(newSaveBtn, saveBtn);
-            loadBtn.parentNode.replaceChild(newLoadBtn, loadBtn);
-            
-            newSaveBtn.onclick = (e) => {
-                e.stopPropagation();
-                syncToCloud();
-            };
-            newLoadBtn.onclick = (e) => {
-                e.stopPropagation();
-                syncFromCloud();
-            };
-            
-            console.log('✅ 雲端按鈕已綁定到設定頁面');
-        }
-        
-        retryCount++;
-        if (retryCount >= maxRetries) {
-            clearInterval(tryBindButtons);
-            console.warn('⚠️ 找不到雲端按鈕元素');
-        }
-    }, 200);
+    // 尋找設定頁面的內容區域
+    const settingsContent = document.querySelector('#settings-modal .modal-content');
+    if (!settingsContent) {
+        console.log('⏳ 設定頁面尚未載入，稍後重試...');
+        return false;
+    }
+    
+    // 尋找音樂控制按鈕（作為插入位置的參考）
+    const musicBtn = document.getElementById('bgm-toggle-settings');
+    
+    // 建立雲端按鈕區塊
+    const cloudDiv = document.createElement('div');
+    cloudDiv.id = 'cloud-sync-section';
+    cloudDiv.style.cssText = 'background:#e8f4fd; padding:15px; border-radius:15px; margin-bottom:20px; border:2px solid #3498db;';
+    cloudDiv.innerHTML = `
+        <div style="font-size:18px; color:#2980b9; font-weight:bold; margin-bottom:10px;">☁️ 雲端存檔專區</div>
+        <div style="display: flex; gap: 10px; margin-bottom: 10px;">
+            <button id="cloud-save-btn" class="option-btn" style="background:#3498db; color:white; border:none; flex:1; padding: 10px; cursor:pointer;">☁️ 儲存到雲端</button>
+            <button id="cloud-load-btn" class="option-btn" style="background:#2ecc71; color:white; border:none; flex:1; padding: 10px; cursor:pointer;">🌐 從雲端讀取</button>
+        </div>
+        <div style="font-size: 12px; color: #555; text-align: center;">💡 雲端存檔讓你可以在不同裝置間同步遊戲進度！</div>
+    `;
+    
+    // 插入到音樂按鈕之後
+    if (musicBtn && musicBtn.parentNode) {
+        musicBtn.parentNode.insertBefore(cloudDiv, musicBtn.nextSibling);
+    } else {
+        settingsContent.insertBefore(cloudDiv, settingsContent.firstChild);
+    }
+    
+    // 綁定按鈕事件
+    const saveBtn = document.getElementById('cloud-save-btn');
+    const loadBtn = document.getElementById('cloud-load-btn');
+    
+    if (saveBtn && loadBtn) {
+        saveBtn.onclick = (e) => {
+            e.stopPropagation();
+            syncToCloud();
+        };
+        loadBtn.onclick = (e) => {
+            e.stopPropagation();
+            syncFromCloud();
+        };
+        console.log('✅ 雲端按鈕已成功加入設定頁面！');
+        return true;
+    }
+    
+    return false;
 }
 
 // ============================================
-// 顯示玩家 ID（選用功能）
+// 持續等待設定頁面出現（使用 MutationObserver）
 // ============================================
 
-function showPlayerId() {
-    const playerId = getPlayerId();
-    alert(`你的雲端存檔 ID 是：\n\n${playerId}\n\n請記下這個 ID，在其他裝置輸入即可同步進度。`);
+let injectionAttempts = 0;
+const MAX_ATTEMPTS = 30;
+
+function waitForSettingsModal() {
+    if (injectionAttempts >= MAX_ATTEMPTS) {
+        console.warn('⚠️ 超過最大嘗試次數，無法加入雲端按鈕');
+        return;
+    }
+    
+    injectionAttempts++;
+    
+    if (injectCloudButtons()) {
+        console.log('✅ 雲端按鈕已成功注入！');
+        return;
+    }
+    
+    // 如果設定頁面還沒出現，0.5 秒後再試一次
+    setTimeout(waitForSettingsModal, 500);
 }
 
-function setPlayerId() {
-    const newId = prompt('請輸入你的雲端存檔 ID：');
-    if (newId && newId.trim()) {
-        localStorage.setItem('cloud_playerId', newId.trim());
-        alert('✅ 已切換 ID，請點擊「從雲端讀取」來載入進度。');
-        location.reload();
+// ============================================
+// 初始化：等待 DOM 載入後開始監聽
+// ============================================
+
+function initCloudSave() {
+    console.log('☁️ 雲端存檔模組初始化');
+    
+    // 如果設定頁面已經存在，直接注入
+    if (document.querySelector('#settings-modal .modal-content')) {
+        injectCloudButtons();
+    } else {
+        // 否則開始等待
+        waitForSettingsModal();
     }
 }
 
-// ============================================
-// 初始化
-// ============================================
-
+// 啟動初始化
 if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', setupCloudButtons);
+    document.addEventListener('DOMContentLoaded', initCloudSave);
 } else {
-    setupCloudButtons();
+    initCloudSave();
 }
