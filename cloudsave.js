@@ -1,40 +1,63 @@
-// cloudsave.js - 完整修正版
+// cloudsave.js - 雲端存檔功能 (完整版)
 
 const CLOUD_API_URL = 'https://script.google.com/macros/s/AKfycbyHqMyyHbR2OrTOZ2qQtECKLyJAd29Bgj6ftSC1JomtxzmPBn7TNFSkxl8GlfpoglZE9g/exec';
 
+// ============================================
+// 產生或取得玩家唯一 ID
+// ============================================
+
 function getPlayerId() {
     let playerId = localStorage.getItem('cloud_playerId');
+    
     if (!playerId) {
         playerId = 'player_' + Date.now() + '_' + Math.random().toString(36).substr(2, 8);
         localStorage.setItem('cloud_playerId', playerId);
+        
         setTimeout(() => {
             const customName = prompt('✨ 歡迎！請輸入你的名字（用於雲端存檔）：', '勇者');
             if (customName && customName.trim()) {
                 playerId = customName.trim() + '_' + Date.now();
                 localStorage.setItem('cloud_playerId', playerId);
+                showCloudMsg(`✅ 已設定玩家名稱：${customName}`);
             }
         }, 500);
     }
+    
     return playerId;
 }
+
+// ============================================
+// 顯示提示訊息
+// ============================================
 
 function showCloudMsg(msg) {
     if (typeof showBattleMsg === 'function') {
         showBattleMsg(msg);
     } else {
         console.log(msg);
+        // 備用提示方式
+        const msgDiv = document.getElementById('battle-msg');
+        if (msgDiv) {
+            msgDiv.innerText = msg;
+            msgDiv.style.opacity = 1;
+            setTimeout(() => { msgDiv.style.opacity = 0; }, 2000);
+        }
     }
 }
 
+// ============================================
 // JSONP 請求輔助函數
+// ============================================
+
 function jsonpRequest(params) {
     return new Promise((resolve, reject) => {
         const callbackName = 'jsonp_' + Date.now() + '_' + Math.random().toString(36).substr(2, 5);
         const script = document.createElement('script');
+        let timeoutId;
         
         window[callbackName] = (response) => {
             delete window[callbackName];
-            document.body.removeChild(script);
+            if (document.body.contains(script)) document.body.removeChild(script);
             clearTimeout(timeoutId);
             resolve(response);
         };
@@ -44,10 +67,10 @@ function jsonpRequest(params) {
             url += '&' + encodeURIComponent(key) + '=' + encodeURIComponent(params[key]);
         }
         
-        const timeoutId = setTimeout(() => {
+        timeoutId = setTimeout(() => {
             if (window[callbackName]) {
                 delete window[callbackName];
-                document.body.removeChild(script);
+                if (document.body.contains(script)) document.body.removeChild(script);
                 reject(new Error('請求超時'));
             }
         }, 15000);
@@ -57,14 +80,19 @@ function jsonpRequest(params) {
     });
 }
 
+// ============================================
+// 儲存到雲端（不儲存 studyLog）
+// ============================================
+
 async function syncToCloud() {
     const playerId = getPlayerId();
     
+    // 只儲存貼紙資料和單字庫設定，不儲存學習紀錄
     const saveData = {
         gachaData: window.gachaData,
-        studyLog: window.studyLog,
         activeLessons: activeLessons,
-        deviceInfo: navigator.userAgent
+        deviceInfo: navigator.userAgent,
+        saveTime: new Date().toISOString()
     };
     
     showCloudMsg('☁️ 正在儲存到雲端...');
@@ -91,6 +119,10 @@ async function syncToCloud() {
     }
 }
 
+// ============================================
+// 從雲端讀取
+// ============================================
+
 async function syncFromCloud() {
     const playerId = getPlayerId();
     showCloudMsg('☁️ 正在從雲端讀取...');
@@ -102,18 +134,29 @@ async function syncFromCloud() {
         });
         
         if (result && result.success && result.data) {
-            if (confirm(`找到雲端存檔！\n最後儲存時間：${result.lastSaveTime}\n\n要覆蓋目前的進度嗎？`)) {
-                window.gachaData = result.data.gachaData;
-                window.studyLog = result.data.studyLog;
-                activeLessons = result.data.activeLessons;
+            const saveTime = result.lastSaveTime ? new Date(result.lastSaveTime).toLocaleString() : '未知';
+            
+            if (confirm(`找到雲端存檔！\n最後儲存時間：${saveTime}\n\n要覆蓋目前的進度嗎？`)) {
+                // 覆蓋本地存檔（只覆蓋貼紙資料和單字庫）
+                if (result.data.gachaData) {
+                    window.gachaData = result.data.gachaData;
+                    localStorage.setItem('gachaSystemV5', JSON.stringify(window.gachaData));
+                }
                 
-                localStorage.setItem('gachaSystemV5', JSON.stringify(window.gachaData));
-                localStorage.setItem('dragonGameLogV5', JSON.stringify(window.studyLog));
-                localStorage.setItem('activeLessons', JSON.stringify(activeLessons));
+                if (result.data.activeLessons) {
+                    activeLessons = result.data.activeLessons;
+                    localStorage.setItem('activeLessons', JSON.stringify(activeLessons));
+                    if (typeof buildCurrentWordList === 'function') {
+                        buildCurrentWordList();
+                    }
+                }
                 
                 showCloudMsg('✅ 雲端讀取成功！請重新整理頁面。');
                 setTimeout(() => location.reload(), 1500);
                 return true;
+            } else {
+                showCloudMsg('已取消載入雲端存檔');
+                return false;
             }
         } else {
             showCloudMsg('⚠️ ' + (result?.error || '沒有找到雲端存檔'));
@@ -126,28 +169,62 @@ async function syncFromCloud() {
     }
 }
 
-function addCloudSyncButton() {
-    let retryCount = 0;
-    const tryAddButton = setInterval(() => {
-        const parentZone = document.getElementById('parent-unlocked-zone');
-        if (parentZone) {
-            clearInterval(tryAddButton);
-            if (document.getElementById('cloud-sync-buttons')) return;
-            
-            const buttonDiv = document.createElement('div');
-            buttonDiv.id = 'cloud-sync-buttons';
-            buttonDiv.style.cssText = 'display: flex; gap: 10px; margin-top: 10px;';
-            buttonDiv.innerHTML = `
-                <button class="option-btn" style="background:#3498db; color:white; border:none; flex:1; padding: 10px;" onclick="syncToCloud()">☁️ 儲存到雲端</button>
-                <button class="option-btn" style="background:#2ecc71; color:white; border:none; flex:1; padding: 10px;" onclick="syncFromCloud()">🌐 從雲端讀取</button>
-            `;
-            parentZone.appendChild(buttonDiv);
-        }
-        retryCount++;
-        if (retryCount >= 20) clearInterval(tryAddButton);
-    }, 200);
+// ============================================
+// 綁定雲端按鈕到主畫面
+// ============================================
+
+function setupCloudButtons() {
+    const saveBtn = document.getElementById('cloud-save-btn');
+    const loadBtn = document.getElementById('cloud-load-btn');
+    
+    if (saveBtn && loadBtn) {
+        // 移除舊的事件監聽器（避免重複綁定）
+        const newSaveBtn = saveBtn.cloneNode(true);
+        const newLoadBtn = loadBtn.cloneNode(true);
+        saveBtn.parentNode.replaceChild(newSaveBtn, saveBtn);
+        loadBtn.parentNode.replaceChild(newLoadBtn, loadBtn);
+        
+        newSaveBtn.onclick = (e) => {
+            e.stopPropagation();
+            syncToCloud();
+        };
+        newLoadBtn.onclick = (e) => {
+            e.stopPropagation();
+            syncFromCloud();
+        };
+        
+        console.log('✅ 雲端按鈕已綁定到主畫面');
+    } else {
+        console.warn('⚠️ 找不到雲端按鈕元素，請確認 HTML 中有 id 為 cloud-save-btn 和 cloud-load-btn 的按鈕');
+        // 重試一次
+        setTimeout(setupCloudButtons, 500);
+    }
 }
 
-document.addEventListener('DOMContentLoaded', () => {
-    setTimeout(addCloudSyncButton, 500);
-});
+// ============================================
+// 顯示玩家 ID（選用功能）
+// ============================================
+
+function showPlayerId() {
+    const playerId = getPlayerId();
+    alert(`你的雲端存檔 ID 是：\n\n${playerId}\n\n請記下這個 ID，在其他裝置輸入即可同步進度。`);
+}
+
+function setPlayerId() {
+    const newId = prompt('請輸入你的雲端存檔 ID：');
+    if (newId && newId.trim()) {
+        localStorage.setItem('cloud_playerId', newId.trim());
+        alert('✅ 已切換 ID，請點擊「從雲端讀取」來載入進度。');
+        location.reload();
+    }
+}
+
+// ============================================
+// 初始化
+// ============================================
+
+if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', setupCloudButtons);
+} else {
+    setupCloudButtons();
+}

@@ -97,6 +97,12 @@
 <div id="game-container">
     <div id="level-tag">第一關</div>
     
+    <!-- 雲端存檔按鈕區塊 - 直接顯示在主畫面左上角 -->
+    <div id="cloud-controls" style="position: absolute; top: 15px; left: 20px; z-index: 100; display: flex; gap: 10px;">
+        <button id="cloud-save-btn" style="background: #3498db; color: white; border: none; border-radius: 20px; padding: 5px 15px; cursor: pointer; font-weight: bold; box-shadow: 0 2px 5px rgba(0,0,0,0.2);">☁️ 儲存</button>
+        <button id="cloud-load-btn" style="background: #2ecc71; color: white; border: none; border-radius: 20px; padding: 5px 15px; cursor: pointer; font-weight: bold; box-shadow: 0 2px 5px rgba(0,0,0,0.2);">🌐 讀取</button>
+    </div>
+    
     <div id="test-panel">
         <div style="font-size:12px; color:#f06292; font-weight:bold; margin-bottom:5px; text-align:center;">🔧 測試區 (免打字)</div>
         <button onclick="forceSkill(0)" style="background:#a29bfe; color:white; border:none; padding:5px 8px; border-radius:5px; cursor:pointer; margin-right:2px;">招 1</button>
@@ -137,17 +143,6 @@
 <script src="lobby.js"></script>
 <script src="combat.js"></script>
 <script src="cloudsave.js"></script>
-
-<!-- ========== 雲端存檔按鈕初始化 ========== -->
-<script>
-// 等待 DOM 和所有腳本載入完成後再執行
-document.addEventListener('DOMContentLoaded', function() {
-    // 稍微延遲一下，確保 parent-unlocked-zone 已經被建立
-    setTimeout(function() {
-        addCloudSyncButton();
-    }, 500);
-});
-</script>
 
 </body>
 </html>
