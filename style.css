@@ -83,43 +83,55 @@ body {
         border: none;
         outline: none;
         box-shadow: none;
-        padding: 10px 12px;
-        padding-bottom: env(safe-area-inset-bottom, 20px);
+        padding: 5px 10px;
+        padding-bottom: env(safe-area-inset-bottom, 10px);
+    }
+    
+    /* 1. 縮小標題，把寶貴的垂直空間留給遊戲 */
+    h1 { 
+        font-size: 20px;
+        margin: 15px 0 5px 0;
     }
 
-    /* 戰鬥區縮小高度，避免擠掉下方按鈕 */
-    #battle-scene { height: 200px; }
+    /* 2. 戰鬥區縮小高度，避免擠掉下方按鈕 */
+    #battle-scene { height: 160px; margin-top: 0; }
 
-    /* 英雄圖縮小 */
-    .character-img-hero { width: 100px; height: 100px; }
+    /* 3. 英雄圖與魔龍圖微調縮小 */
+    .character-img-hero { width: 85px; height: 85px; }
+    .character-img-dragon { max-width: 110px !important; width: 110px !important; }
 
-    /* 魔龍圖限制最大寬度，避免太大 */
-    .character-img-dragon { max-width: 130px !important; width: 130px !important; }
+    /* 4. 問題圖框大幅縮小 */
+    #question-box { width: 110px; height: 110px; }
+    #question-area { margin: 5px 0; }
 
-    /* 問題圖框縮小 */
-    #question-box { width: 150px; height: 150px; }
-    #question-area { margin: 8px 0; }
+    /* 5. 字母按鈕緊湊化，確保不被切掉但仍好按 */
+    .letter-btn { width: 40px; height: 40px; font-size: 18px; }
+    #letters-grid { gap: 5px; }
+    #word-display { font-size: 24px; margin-bottom: 8px; min-height: 30px; }
 
-    /* 字母按鈕縮小，確保不被切掉 */
-    .letter-btn { width: 44px; height: 44px; font-size: 20px; }
-    #letters-grid { gap: 8px; }
-    #word-display { font-size: 26px; margin-bottom: 10px; }
-
-    /* 選項按鈕 */
+    /* 選項按鈕與 HP 字體微縮 */
     .option-btn { font-size: 16px; padding: 12px 8px; }
+    .hp-hearts { font-size: 20px; }
 
-    /* HP 字體縮小 */
-    .hp-hearts { font-size: 22px; }
-
-    /* 大廳 header 改垂直排列，避免三個元素擠在一行 */
+    /* ===== 轉蛋大廳與圖鑑手機版最佳化 ===== */
     .lobby-header { flex-direction: column; gap: 10px; padding: 12px 15px; text-align: center; }
-    .currency-box { font-size: 17px; gap: 12px; }
-
-    /* Tab 按鈕縮小，一行排得下 */
-    .tab-btn { padding: 8px 12px; font-size: 14px; border-radius: 15px; }
-
-    /* 大廳 padding 縮小 */
     #gacha-lobby { padding: 10px; }
+    
+    /* 頂部選單按鈕 */
+    .lobby-tabs { gap: 6px; margin-bottom: 12px; }
+    .tab-btn { padding: 6px 10px; font-size: 13px; white-space: nowrap; border-width: 2px; }
+
+    /* 金幣與星塵顯示區 */
+    .currency-box { font-size: 14px; gap: 8px; }
+
+    /* 貼紙牆與圖鑑列表 */
+    .wall-grid { gap: 8px; margin-top: 15px; }
+    .wall-slot { width: 90px; height: auto; min-height: 110px; }
+    .sticker-card { width: 85px; }
+    .sticker-id { font-size: 11px !important; }
+
+    /* 抽轉蛋跳出來的動畫展示卡片 */
+    .gacha-pop-card { width: 100px !important; }
 }
 
 #level-tag { background: #a29bfe; color: white; padding: 8px 30px; border-radius: 0 0 20px 20px; font-weight: bold; position: absolute; top: 0; z-index: 5; }
@@ -153,11 +165,14 @@ h1 { color: #ffffff; font-size: 28px; margin: 40px 0 15px 0; user-select: none; 
 
 .atk-dash { animation: dashAtk 0.8s forwards !important; }
 @keyframes dashAtk { 0% { transform: translateX(0); } 30% { transform: translateX(180px) scale(1.1); } 100% { transform: translateX(0); } }
-.atk-jump { animation: jumpAtk 1s forwards !important; }
-@keyframes jumpAtk { 0% { transform: translate(0, 0); } 40% { transform: translate(80px, -140px) rotate(15deg); } 60% { transform: translate(180px, 0) rotate(0deg); } 100% { transform: translate(0, 0); } }
+
+.atk-jump { animation: jumpAtk 0.8s forwards !important; }
+@keyframes jumpAtk { 0% { transform: translateY(0); } 30% { transform: translateY(-150px) translateX(100px) scale(1.2); } 100% { transform: translateY(0) translateX(0); } }
+
 .atk-spin { animation: spinAtk 0.8s forwards !important; }
-@keyframes spinAtk { 0% { transform: rotate(0); } 50% { transform: translateX(180px) rotate(360deg); } 100% { transform: translateX(0) rotate(0); } }
-.atk-glow { animation: castAnim 1.2s forwards !important; }
+@keyframes spinAtk { 0% { transform: rotate(0) scale(1); } 50% { transform: rotate(360deg) scale(1.5); filter: drop-shadow(0 0 20px #ffd700); } 100% { transform: rotate(720deg) scale(1); } }
+
+.atk-glow { animation: castAnim 1s forwards !important; filter: drop-shadow(0 0 30px #a29bfe) !important; }
 @keyframes castAnim { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.3); filter: brightness(2); } }
 
 .dragon-atk { animation: dragonDashAtk 0.8s forwards !important; }
@@ -167,50 +182,46 @@ h1 { color: #ffffff; font-size: 28px; margin: 40px 0 15px 0; user-select: none; 
 @keyframes meteorFall { 0% { transform: translate(100px, -100px); opacity: 0; } 30% { opacity: 1; } 70% { transform: translate(-100px, 220px); opacity: 1; filter: brightness(2); } 100% { transform: translate(-100px, 220px) scale(1.5); opacity: 0; } }
 
 @keyframes bubblePassAnim { 0% { transform: translateX(0) scale(0.5); opacity: 0; } 20% { opacity: 1; transform: translateX(50px) scale(1.5); filter: brightness(1.2); } 50% { opacity: 1; transform: translateX(250px) scale(2.5); filter: brightness(1.5); } 100% { transform: translateX(500px) scale(3); opacity: 0; } }
-@keyframes waterBallShoot { 0% { transform: translateY(0) scale(0.5); opacity: 0; } 15% { opacity: 1; transform: translateY(-80px) scale(1); filter: brightness(1.5); } 100% { transform: translateY(-900px) scale(1.5); opacity: 0; } }
-@keyframes magicCircleAnim { 0% { transform: scale(0.1) rotate(0deg); opacity: 0; } 15% { opacity: 1; transform: scale(1.5) rotate(180deg); filter: brightness(1.2); } 85% { opacity: 1; transform: scale(2.8) rotate(1080deg); filter: brightness(1.5); } 100% { transform: scale(3.5) rotate(1440deg); opacity: 0; } }
 
-.hurt-shake { animation: hurtShake 0.4s forwards !important; filter: brightness(1.5) sepia(0.5) !important; }
-@keyframes hurtShake { 0%, 100% { transform: translateX(0); } 25% { transform: translateX(-10px); } 75% { transform: translateX(10px); } }
+@keyframes waterBallShoot { 0% { transform: translateY(0) scale(0.5); opacity: 0; } 15% { opacity: 1; transform: scale(1.5); filter: drop-shadow(0 0 15px #3498db) brightness(1.2); } 70% { opacity: 1; transform: translateY(-300px) scale(2); filter: drop-shadow(0 0 30px #3498db) brightness(1.5); } 100% { transform: translateY(-350px) scale(3); opacity: 0; } }
 
-#question-area { position: relative; margin: 15px 0; z-index: 2; display: flex; flex-direction: column; align-items: center; }
-#question-box { width: 190px; height: 190px; border: 8px solid #ffc1e3; border-radius: 35px; background: white; display: flex; align-items: center; justify-content: center; overflow: hidden; box-shadow: 0 10px 20px rgba(0,0,0,0.3); }
-#question-img { max-width: 90%; max-height: 90%; object-fit: contain; }
-#global-audio-btn { position: absolute; bottom: -5px; right: -5px; width: 50px; height: 50px; background: #a29bfe; border: 3px solid white; border-radius: 50%; cursor: pointer; font-size: 24px; display: flex; align-items: center; justify-content: center; box-shadow: 0 4px 8px rgba(0,0,0,0.3); z-index: 20; }
+@keyframes waterBlast { 0% { transform: scale(0.5); opacity: 0; filter: blur(5px); } 20% { transform: scale(3); opacity: 1; filter: drop-shadow(0 0 40px #2980b9) blur(0); } 80% { transform: scale(4); opacity: 1; filter: drop-shadow(0 0 60px #2980b9) brightness(2); } 100% { transform: scale(5); opacity: 0; filter: blur(10px); } }
 
-#options-container { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; width: 100%; padding-bottom: 20px; margin-top: auto; z-index: 2; }
-.option-btn { background: var(--btn-grad); border: 2px solid #ffffff; border-radius: 50px; color: var(--text-purple); padding: 15px; font-size: 18px; font-weight: bold; cursor: pointer; box-shadow: 0 4px 0 #f48fb1; }
+@keyframes iceFreeze { 0% { filter: brightness(1); } 20% { filter: brightness(1.5) hue-rotate(180deg) saturate(3); transform: scale(1.1); } 80% { filter: brightness(1.5) hue-rotate(180deg) saturate(3); transform: scale(1.1); } 100% { filter: brightness(1); transform: scale(1); } }
+
+@keyframes fireBallShoot { 0% { transform: translateY(0) scale(0.5); opacity: 0; } 20% { opacity: 1; transform: translateY(-50px) scale(1.5); filter: drop-shadow(0 0 20px #e74c3c) brightness(1.2); } 70% { opacity: 1; transform: translateY(-250px) scale(2.5); filter: drop-shadow(0 0 40px #e74c3c) brightness(1.5); } 100% { transform: translateY(-300px) scale(3.5); opacity: 0; } }
+
+@keyframes fireBlast { 0% { transform: scale(0.5); opacity: 0; filter: blur(5px); } 20% { transform: scale(2.5); opacity: 1; filter: drop-shadow(0 0 50px #c0392b) blur(0); } 80% { transform: scale(3.5); opacity: 1; filter: drop-shadow(0 0 80px #c0392b) brightness(2); } 100% { transform: scale(4.5); opacity: 0; filter: blur(10px); } }
+
+@keyframes burnAnim { 0% { filter: brightness(1); } 20% { filter: brightness(1.5) sepia(1) hue-rotate(-30deg) saturate(5); transform: translateY(-10px); } 80% { filter: brightness(1.5) sepia(1) hue-rotate(-30deg) saturate(5); transform: translateY(-10px); } 100% { filter: brightness(1); transform: translateY(0); } }
+
+#question-area { position: relative; width: 100%; text-align: center; margin: 10px 0; z-index: 5; }
+#question-box { width: 180px; height: 180px; margin: 0 auto; background: rgba(255, 255, 255, 0.95); border: 8px solid #ffb6c1; border-radius: 30px; box-shadow: 0 10px 20px rgba(0,0,0,0.3); display: flex; align-items: center; justify-content: center; overflow: hidden; position: relative; }
+#question-img { width: 90%; height: 90%; object-fit: contain; }
+
+#global-audio-btn { position: absolute; right: calc(50% - 150px); top: 50%; transform: translateY(-50%); background: var(--btn-grad); color: var(--text-purple); border: 3px solid #fff; border-radius: 50%; width: 50px; height: 50px; font-size: 24px; cursor: pointer; box-shadow: 0 4px 0 #f48fb1; }
 
 #spelling-container { display: none; flex-direction: column; align-items: center; width: 100%; padding-bottom: 10px; margin-top: auto; z-index: 10; }
 #word-display { font-size: 32px; font-weight: bold; color: #ffffff; letter-spacing: 5px; border-bottom: 4px dashed #ffb6c1; padding: 0 10px; text-shadow: 2px 2px 4px rgba(0,0,0,0.8); margin-bottom: 15px; min-height: 40px; }
 #letters-grid { display: flex; flex-wrap: wrap; gap: 12px; justify-content: center; width: 100%; max-width: 420px; padding: 5px; }
+
 .letter-btn { width: 54px; height: 54px; background: white; border: 3px solid #ffb6c1; border-radius: 12px; font-size: 24px; font-weight: bold; color: var(--dark-pink); cursor: pointer; box-shadow: 0 4px 0 #ffb6c1; display: flex; align-items: center; justify-content: center; text-transform: lowercase; }
 .letter-correct { background: #eee !important; color: #ccc !important; box-shadow: none !important; transform: translateY(3px); pointer-events: none; }
 
-.modal-overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); z-index: 2000; align-items: center; justify-content: center; }
-#sticker-detail-modal { z-index: 7000; }
-.modal-content { 
-    width: 420px; max-height: 90vh; 
-    background: linear-gradient(135deg, #ffffff 0%, #fff0f5 50%, #ffe6f0 100%);
-    border-radius: 35px; border: 8px solid #ffb6c1; padding: 30px 25px; position: relative; overflow-y: auto; 
-    box-shadow: 0 0 30px rgba(255, 182, 193, 0.8), inset 0 0 20px rgba(255, 255, 255, 1);
-}
-.close-btn { position: absolute; top: 15px; right: 15px; cursor: pointer; border: none; background: #ff8da1; color: white; width: 35px; height: 35px; border-radius: 50%; font-weight: bold; z-index: 10; }
+.modal-overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0, 0, 0, 0.7); z-index: 2000; justify-content: center; align-items: center; }
+.modal-content { background: rgba(255,255,255,0.95); width: 90%; max-width: 500px; max-height: 85vh; border-radius: 30px; border: 8px solid #a29bfe; padding: 25px; box-shadow: 0 20px 50px rgba(0,0,0,0.5); overflow-y: auto; text-align: center; }
+.modal-content h2 { color: #8e44ad; font-size: 30px; margin-top: 0; margin-bottom: 20px; border-bottom: 3px dashed #a29bfe; padding-bottom: 10px; }
+.lesson-list { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 15px; margin-bottom: 20px; }
+.lesson-btn { background: #f1f2f6; border: 3px solid #ced6e0; padding: 15px 10px; border-radius: 15px; font-size: 18px; font-weight: bold; color: #2f3542; cursor: pointer; transition: 0.2s; box-shadow: 0 4px 0 #ced6e0; }
+.lesson-btn.active { background: #a29bfe; border-color: #6c5ce7; color: white; box-shadow: 0 4px 0 #6c5ce7; transform: translateY(2px); }
+.big-btn { background: #6c5ce7; color: white; border: none; padding: 15px 30px; font-size: 22px; font-weight: bold; border-radius: 20px; cursor: pointer; margin-top: 10px; box-shadow: 0 5px 0 #4834d4; transition: 0.2s; }
+.big-btn:active { transform: translateY(5px); box-shadow: none; }
 
-#victory-screen, #game-over-screen { 
-    position: fixed; top: 0; left: 0; width: 100%; height: 100%; 
-    background: rgba(0,0,0,0.85); display: none; flex-direction: column; align-items: center; justify-content: center; z-index: 3000; text-align: center; 
-    background-size: cover; background-position: center; background-repeat: no-repeat;
-}
-.big-btn { padding: 15px 50px; font-size: 24px; border-radius: 50px; background: #ff69b4; color: white; border: none; cursor: pointer; margin-top: 30px; box-shadow: 0 5px 15px rgba(255, 20, 147, 0.5); border: 3px solid white; transition: 0.2s; }
+.close-btn { position: absolute; top: 15px; right: 20px; background: none; border: none; font-size: 30px; cursor: pointer; color: #aaa; }
 
-#gacha-lobby {
-    display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; 
-    background: url('assets/bg_main.png') center/cover no-repeat; z-index: 6000; 
-    flex-direction: column; padding: 20px; box-sizing: border-box; overflow-y: auto;
-}
-.lobby-header { display: flex; justify-content: space-between; align-items: center; background: rgba(255,255,255,0.8); padding: 15px 30px; border-radius: 30px; box-shadow: 0 5px 15px rgba(0,0,0,0.2); border: 3px solid #ffb6c1; margin-bottom: 20px; }
-.currency-box { display: flex; gap: 20px; font-size: 22px; font-weight: bold; }
+#gacha-lobby { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background-image: url('assets/lobby_bg.png'); background-size: cover; background-position: center; z-index: 3000; flex-direction: column; padding: 20px; box-sizing: border-box; overflow-y: auto; }
+.lobby-header { display: flex; justify-content: space-between; align-items: center; background: rgba(255,255,255,0.9); padding: 15px 30px; border-radius: 30px; box-shadow: 0 10px 20px rgba(0,0,0,0.2); margin-bottom: 20px; border: 4px solid #ffb6c1; }
+.currency-box { display: flex; gap: 20px; font-size: 24px; font-weight: bold; }
 .currency-coin { color: #f39c12; text-shadow: 1px 1px 0 #fff; }
 .currency-dust { color: #8e44ad; text-shadow: 1px 1px 0 #fff; }
 
@@ -223,24 +234,16 @@ h1 { color: #ffffff; font-size: 28px; margin: 40px 0 15px 0; user-select: none; 
 
 #gacha-machine-area { text-align: center; }
 .gacha-btn-group { display: flex; gap: 20px; justify-content: center; }
-.gacha-pull-btn { background: linear-gradient(180deg, #ffd700, #ff8c00); border: 4px solid white; color: white; font-size: 24px; font-weight: bold; padding: 15px 40px; border-radius: 50px; cursor: pointer; box-shadow: 0 5px 15px rgba(255,140,0,0.5); transition: 0.2s; }
-.gacha-pull-btn:active { transform: scale(0.95); }
+.gacha-pull-btn { background: linear-gradient(180deg, #ffd700, #ff8c00); border: 4px solid white; color: white; font-size: 24px; font-weight: bold; padding: 15px 30px; border-radius: 30px; cursor: pointer; box-shadow: 0 8px 15px rgba(255, 140, 0, 0.4); transition: 0.2s; }
+.gacha-pull-btn:active { transform: translateY(4px); box-shadow: 0 4px 8px rgba(255, 140, 0, 0.4); }
 
-.sticker-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(100px, 1fr)); gap: 15px; width: 100%; max-width: 900px; }
-.sticker-card { aspect-ratio: 1; background: #fff; border-radius: 12px; display: flex; align-items: center; justify-content: center; position: relative; cursor: pointer; transition: 0.3s; overflow: hidden; flex-direction: column; }
-.sticker-card:hover { transform: scale(1.05); }
-.sticker-card img { width: 85%; max-height: 85%; object-fit: contain; }
-.sticker-id { position: absolute; top: 4px; left: 4px; font-size: 12px; font-weight: bold; background: rgba(255,255,255,0.9); padding: 2px 6px; border-radius: 6px; z-index: 5; }
-.sticker-locked { filter: brightness(0) opacity(0.2); }
-.card-stars { position: absolute; bottom: 20px; left: 50%; transform: translateX(-50%); font-size: 14px; letter-spacing: -2px; color: #ffd700; text-shadow: 1px 1px 2px #000; z-index: 5; white-space: nowrap; }
-
-@keyframes rainbowGlow { 0%{border-color:#ff0000; box-shadow:0 0 15px #ff0000;} 33%{border-color:#00ff00; box-shadow:0 0 15px #00ff00;} 66%{border-color:#0000ff; box-shadow:0 0 15px #0000ff;} 100%{border-color:#ff0000; box-shadow:0 0 15px #ff0000;} }
-.rarity-SSR { border: 4px solid transparent; animation: rainbowGlow 2s linear infinite; background: linear-gradient(135deg, #fff 0%, #ffeaa7 100%); }
-.rarity-SR { border: 4px solid #9b59b6; box-shadow: 0 0 10px #9b59b6; background: linear-gradient(135deg, #fff 0%, #f4eaff 100%); }
-.rarity-R { border: 4px solid #f1c40f; box-shadow: 0 0 10px #f1c40f; background: linear-gradient(135deg, #fff 0%, #fff8dc 100%); }
-.rarity-N { border: 3px solid #ecf0f1; background: linear-gradient(135deg, #fff 0%, #f0f3f4 100%); }
-
-.rarity-badge { position: absolute; bottom: 2px; right: 4px; font-size: 14px; font-weight: 900; font-style: italic; text-shadow: 1px 1px 0 #fff; z-index: 5; }
+.collection-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(100px, 1fr)); gap: 15px; width: 100%; max-width: 800px; padding: 10px; }
+.sticker-card { background: white; border: 3px solid #eee; border-radius: 15px; padding: 10px; text-align: center; position: relative; cursor: pointer; box-shadow: 0 5px 10px rgba(0,0,0,0.1); transition: 0.3s; }
+.sticker-card.unlocked:hover { transform: translateY(-5px); box-shadow: 0 10px 15px rgba(0,0,0,0.2); }
+.sticker-card.locked { filter: grayscale(1) opacity(0.5); cursor: not-allowed; }
+.sticker-card img { width: 100%; height: 80px; object-fit: contain; }
+.sticker-id { position: absolute; top: 5px; left: 5px; background: rgba(0,0,0,0.6); color: white; font-size: 12px; padding: 2px 5px; border-radius: 5px; font-weight: bold; }
+.rarity-badge { position: absolute; top: 5px; right: 5px; font-weight: 900; font-size: 14px; font-style: italic; text-shadow: 1px 1px 0 #fff; z-index: 5; }
 .badge-SSR { color: #ff4757; } .badge-SR { color: #8e44ad; } .badge-R { color: #d35400; } .badge-N { color: #7f8c8d; }
 
 .wall-grid { display: flex; justify-content: center; gap: 20px; flex-wrap: wrap; margin-top: 30px; }
@@ -249,45 +252,14 @@ h1 { color: #ffffff; font-size: 28px; margin: 40px 0 15px 0; user-select: none; 
 .wall-slot:hover { background: rgba(255,182,193,0.3); }
 
 #gacha-animation-screen { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.9); z-index: 8000; flex-direction: column; align-items: center; justify-content: center; }
-#gacha-result-container { display: flex; flex-wrap: wrap; justify-content: center; gap: 20px; max-width: 800px; margin-top: 20px; }
-.gacha-pop-card { width: 160px; height: 160px; transform: scale(0); opacity: 0; }
-@keyframes gachaPopMulti {
-    0% { transform: scale(0) rotate(-360deg); opacity: 0; }
-    60% { transform: scale(1.2) rotate(10deg); opacity: 1; filter: brightness(1.5); }
-    80% { transform: scale(0.9) rotate(-5deg); opacity: 1; }
-    100% { transform: scale(1) rotate(0deg); opacity: 1; filter: brightness(1); }
-}
-.show-gacha-multi { animation: gachaPopMulti 0.6s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards !important; }
-#gacha-msg { color: white; font-size: 24px; margin-top: 40px; font-weight: bold; text-align: center; }
+#gacha-result-container { display: flex; flex-wrap: wrap; justify-content: center; gap: 20px; max-width: 800px; margin-bottom: 30px; }
+.gacha-pop-card { width: 150px; opacity: 0; transform: scale(0.5) translateY(50px); pointer-events: none; }
+.show-gacha-multi { animation: popGachaMulti 0.6s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards; pointer-events: auto; }
+@keyframes popGachaMulti { 0% { opacity: 0; transform: scale(0.5) translateY(50px); } 100% { opacity: 1; transform: scale(1) translateY(0); } }
 
-#buff-panel { background: rgba(255,255,255,0.9); padding: 15px; border-radius: 15px; border: 3px solid #ffb6c1; margin-bottom: 20px; width: 90%; text-align: center; font-weight: bold; color: #8e44ad; }
+/* ★ 奧義特效區 (英雄與魔龍通用) */
 
-@keyframes waveTsunamiAnim { 
-    0% { transform: translateX(0) scale(0.2); opacity: 0; } 
-    20% { opacity: 1; transform: translateX(50px) scale(1); filter: brightness(1.2); } 
-    60% { opacity: 1; transform: translateX(300px) scale(2.5); filter: brightness(1.5); } 
-    100% { transform: translateX(600px) scale(4); opacity: 0; filter: brightness(1); } 
-}
-
-/* ★ 稀有度與增益粒子特效 */
-@keyframes ssrParticleAnim {
-    0% { transform: translate(0, 0) scale(1); opacity: 1; filter: hue-rotate(0deg); }
-    100% { transform: translate(var(--dx), var(--dy)) scale(0); opacity: 0; filter: hue-rotate(360deg); }
-}
-.ssr-particle {
-    position: absolute; width: 10px; height: 10px; border-radius: 50%;
-    background: white; box-shadow: 0 0 10px white, 0 0 20px white;
-    pointer-events: none; z-index: 1000;
-    animation: ssrParticleAnim 1.5s ease-out forwards;
-}
-
-/* ★ 艾德恩技能的專屬特效 (魄力加強版) */
-.hero-front { z-index: 1000 !important; }
-.dragon-front { z-index: 950 !important; }
-
-.character-img-hero.casting-ult { animation: none !important; }
-
-/* 1. 魔法陣放大閃爍與旋轉 (修正：拿掉所有綠色、色相旋轉濾鏡，還原原本黃色) */
+/* 1. 全域奧義魔法陣背景 (放在 #battle-scene 內，z-index 控制在人物之下) */
 @keyframes magicCircleScaleGlow {
     0% { transform: translate(-50%, 0) scale(0.1) rotate(0deg); opacity: 0; filter: brightness(1); }
     15% { opacity: 1; transform: translate(-50%, 0) scale(1.1) rotate(180deg); filter: brightness(1.5); }
@@ -295,86 +267,63 @@ h1 { color: #ffffff; font-size: 28px; margin: 40px 0 15px 0; user-select: none; 
     100% { transform: translate(-50%, 0) scale(1.2) rotate(1440deg); opacity: 0; filter: brightness(1); }
 }
 .ult-magic-circle {
-    position: absolute; bottom: -50px; left: 50%; transform: translateX(-50%);
-    width: 300px; height: 300px; 
+    position: absolute; bottom: -50px; left: 50%; transform: translateX(-50%); width: 300px; height: 300px;
     z-index: 110 !important; /* 確保在黑屏 (z-index 10) 之上 */
-    animation: magicCircleScaleGlow 3s ease-in-out forwards;
-    pointer-events: none;
+    animation: magicCircleScaleGlow 3s ease-in-out forwards; pointer-events: none;
 }
 
 /* 2. 艾德恩睜眼揮劍動作控制 */
 @keyframes heroOpenEye {
     0% { transform: scale(1); }
     50% { transform: scale(1.2); filter: brightness(1.5); }
-    100% { transform: scale(1); }
+    80% { transform: scale(1.2) translateX(30px); filter: brightness(1.5); }
+    90% { transform: scale(1.3) translateX(150px); filter: brightness(2); } /* 揮擊瞬間 */
+    100% { transform: scale(1) translateX(0); filter: brightness(1); }
 }
-.hero-open-eye { animation: heroOpenEye 0.4s ease-out; }
+.casting-ult { animation: heroOpenEye 3s ease-in-out forwards !important; }
 
-/* 3. 天空金色雷電Anim (多道雷電閃爍) */
-@keyframes goldLightningStrike {
-    0% { opacity: 0; } 
-    5%, 15%, 25%, 35% { opacity: 1; filter: brightness(2); }
-    10%, 20%, 30% { opacity: 0.3; }
-    50% { opacity: 1; transform: scaleY(1.1); }
-    100% { opacity: 0; transform: scaleY(0.8) translateY(100px); }
+/* 3. 黑屏濾鏡 (降低背景亮度，凸顯奧義) */
+.dark-bg-filter {
+    position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+    background: rgba(0, 0, 0, 0.7); z-index: 10; pointer-events: none;
+    animation: fadeDark 3s ease-in-out forwards;
 }
-.gold-lightning {
-    position: absolute; top: 100px; left: var(--lx);
-    width: 80px; height: 250px; background-size: contain; background-repeat: no-repeat;
-    z-index: 109; /* 在黑屏和魔法陣之間 */
-    pointer-events: none;
-    animation: goldLightningStrike 0.6s ease-out forwards;
-    animation-delay: var(--ldelay);
-    filter: drop-shadow(0 0 10px var(--gold-lightning));
+@keyframes fadeDark {
+    0% { opacity: 0; } 10% { opacity: 1; } 80% { opacity: 1; } 100% { opacity: 0; }
 }
 
-/* 4. 巨劍加上金色光暈與雷電纏繞 */
-@keyframes giantSwordFallUpdate {
-    0% { transform: translateY(-800px) scale(0.8) rotate(0deg); opacity: 0; }
-    20% { opacity: 1; }
-    90% { transform: translateY(0) scale(1.2) rotate(0deg); opacity: 1; } 
-    100% { transform: translateY(0) scale(1.2) rotate(0deg); opacity: 1; } 
+/* 4. 奧義招式名稱字體 */
+@keyframes slideUltText {
+    0% { transform: translate(-50%, -100px) scale(0.5); opacity: 0; }
+    20% { transform: translate(-50%, 0) scale(1.2); opacity: 1; text-shadow: 0 0 20px #fff; }
+    80% { transform: translate(-50%, 0) scale(1); opacity: 1; text-shadow: 0 0 10px #f39c12; }
+    100% { transform: translate(-50%, -100px) scale(1.5); opacity: 0; }
 }
-.giant-sword-with-effects {
-    position: absolute; bottom: 0px; right: 50px; 
-    width: 150px; 
-    z-index: 115; pointer-events: none;
-    animation: giantSwordFallUpdate 0.8s cubic-bezier(.5,0,1,1) forwards;
-    transform-origin: bottom center;
-    filter: drop-shadow(0 0 15px var(--gold-lightning)) drop-shadow(0 0 30px #ffffff);
-}
-.sword-lightning-wraps {
-    position: absolute; top: -50px; left: -25px; width: 150%; height: 150%;
-    background-size: contain; background-repeat: no-repeat; background-position: center;
-    animation: swordLightningWraps 0.3s ease-in infinite;
-    pointer-events: none; z-index: -1; 
-}
-@keyframes swordLightningWraps {
-    0% { opacity: 0; } 50% { opacity: 1; filter: brightness(1.5); } 100% { opacity: 0; }
+.ult-text-display {
+    position: absolute; top: 20%; left: 50%; transform: translateX(-50%);
+    font-size: 50px; font-weight: 900; color: #ffd700; z-index: 130;
+    -webkit-text-stroke: 2px #d35400; text-shadow: 0 5px 15px rgba(0,0,0,0.8);
+    pointer-events: none; animation: slideUltText 3s ease-in-out forwards;
+    white-space: nowrap;
 }
 
-/* 5. 金色能量大爆炸 (修正：集中單一爆發在魔龍身上) */
+/* 5. 命中魔龍的黃金爆炸 */
 @keyframes goldExplosion {
-    0% { transform: scale(0.1); opacity: 0; }
-    15% { transform: scale(3.5); opacity: 1; filter: brightness(2); }
-    50% { transform: scale(4.5); opacity: 1; filter: brightness(1.5); }
-    100% { transform: scale(5); opacity: 0; filter: brightness(1); }
+    0% { transform: scale(0.1); opacity: 0; filter: brightness(1); }
+    20% { transform: scale(2); opacity: 1; filter: brightness(2) drop-shadow(0 0 50px #ffd700); }
+    50% { transform: scale(3); opacity: 1; filter: brightness(1.5) drop-shadow(0 0 30px #f39c12); }
+    100% { transform: scale(4); opacity: 0; filter: brightness(1); }
 }
-.gold-explosion-fx {
-    position: absolute; 
-    bottom: 20px; 
-    right: 20px; /* 位置對準右側的魔龍 */
-    width: 300px; 
-    height: 300px; 
-    z-index: 120; 
-    pointer-events: none;
+.ult-explosion {
+    position: absolute; bottom: 20px; right: 20px; /* 位置對準右側的魔龍 */
+    width: 300px; height: 300px; z-index: 120; pointer-events: none;
     animation: goldExplosion 1s ease-out forwards;
 }
 
 /* 6. 魔龍變金、雷電電擊Anim */
 @keyframes dragonShock {
     0% { filter: brightness(1); }
-    5%, 25%, 45% { filter: brightness(3) sepia(1) saturate(10); transform: translate(-15px, -15px); }
+    5%, 25%, 45% { filter: brightness(2) sepia(1) saturate(8); transform: translate(-15px, -15px); }
     15%, 35%, 55% { filter: brightness(2) sepia(1) saturate(8); transform: translate(15px, 15px); }
     80% { filter: brightness(1.5) sepia(1) saturate(5); transform: translate(0, 0); }
     100% { filter: brightness(1); }
@@ -395,16 +344,4 @@ h1 { color: #ffffff; font-size: 28px; margin: 40px 0 15px 0; user-select: none; 
     90% { transform: translate(0px, 0px) scale(1); }
     100% { transform: translate(0, 0) scale(1); }
 }
-.severe-shake { animation: severeShake 0.8s cubic-bezier(.36,.07,.19,.97) both; }
-
-/* 金色雷電粒子散落 */
-@keyframes lightningParticle {
-    0% { transform: translate(0, 0) scale(1); opacity: 1; }
-    100% { transform: translate(var(--pdx), var(--pdy)) rotate(360deg) scale(0); opacity: 0; }
-}
-.lightning-particle {
-    position: absolute; width: 8px; height: 8px; background: var(--gold-lightning); 
-    box-shadow: 0 0 5px var(--gold-lightning); border-radius: 50%;
-    pointer-events: none; z-index: 125;
-    animation: lightningParticle 1.2s ease-out forwards;
-}
+.hurt-shake { animation: severeShake 0.5s ease-in-out !important; }
