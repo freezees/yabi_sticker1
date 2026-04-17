@@ -531,3 +531,45 @@ h1 { color: #ffffff; font-size: 28px; margin: 40px 0 15px 0; user-select: none; 
         padding: 20px 15px;
     }
 }
+
+/* 彈窗內貼紙網格 */
+.sticker-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(85px, 1fr));
+    gap: 10px;
+    width: 100%;
+}
+
+.wall-grid {
+    display: flex;
+    justify-content: center;
+    gap: 15px;
+    flex-wrap: wrap;
+}
+
+.wall-slot {
+    width: 90px;
+    height: 90px;
+    border: 4px dashed #ffb6c1;
+    border-radius: 20px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: rgba(255,255,255,0.5);
+    cursor: pointer;
+}
+
+.wall-slot img {
+    width: 85%;
+}
+
+.gacha-pull-btn {
+    background: linear-gradient(180deg, #ffd700, #ff8c00);
+    border: 3px solid white;
+    color: white;
+    font-size: 18px;
+    font-weight: bold;
+    padding: 10px 25px;
+    border-radius: 50px;
+    cursor: pointer;
+}
