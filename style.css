@@ -1,4 +1,4 @@
-/* style.css - iPhone 排版修正版 */
+/* style.css - iPhone 排版修正版 + 底部按鈕適配 */
 :root { 
     --main-pink: #ffb6c1; 
     --dark-pink: #f06292;
@@ -26,6 +26,7 @@ body {
     background-size: cover; background-position: center; background-attachment: fixed; background-repeat: no-repeat;
     display: flex; flex-direction: column; align-items: center; justify-content: center;
     min-height: 100vh; margin: 0; padding: 20px; overflow-y: auto; overflow-x: hidden; 
+    padding-bottom: env(safe-area-inset-bottom, 20px);
 }
 
 /* ★ 稀有度閃爍外框特效 */
@@ -70,9 +71,11 @@ body {
     background-size: cover; background-position: center; background-repeat: no-repeat;
     border-radius: 50px; box-shadow: 0 20px 60px rgba(0, 0, 0, 0.6); 
     position: relative; display: flex; flex-direction: column; align-items: center; 
-    padding: 25px; padding-bottom: 50px; 
+    padding: 25px; 
     box-sizing: border-box; border: 10px solid #ffffff; outline: 2px solid #ffb6c1;
     opacity: 0; transition: opacity 1s, background-image 0.5s ease; overflow: hidden;
+    padding-bottom: max(50px, env(safe-area-inset-bottom, 20px));
+    margin-bottom: 70px;
 }
 .game-show { opacity: 1 !important; }
 
@@ -87,6 +90,7 @@ body {
         padding: 0; 
         margin: 0;
         min-height: 100vh;
+        padding-bottom: env(safe-area-inset-bottom, 10px);
     }
 
     #game-container {
@@ -97,11 +101,12 @@ body {
         outline: none;
         box-shadow: none;
         padding: 12px 12px 20px 12px;
-        padding-bottom: env(safe-area-inset-bottom, 20px);
+        padding-bottom: max(80px, env(safe-area-inset-bottom, 80px));
         box-sizing: border-box;
         display: flex;
         flex-direction: column;
         justify-content: space-between;
+        margin-bottom: 0;
     }
 
     #game-container h1 {
@@ -239,6 +244,49 @@ body {
         padding: 4px 6px;
         font-size: 11px;
     }
+
+    /* 底部大廳按鈕 */
+    #lobby-buttons {
+        gap: 6px;
+        padding: 8px 12px;
+        margin: 0 8px;
+        bottom: env(safe-area-inset-bottom, 10px);
+    }
+    
+    #lobby-buttons button {
+        padding: 6px 12px;
+        font-size: 12px !important;
+    }
+}
+
+/* 底部大廳按鈕樣式 */
+#lobby-buttons {
+    position: fixed;
+    bottom: 10px;
+    left: 0;
+    right: 0;
+    display: flex;
+    justify-content: center;
+    gap: 8px;
+    flex-wrap: wrap;
+    padding: 10px;
+    background: rgba(0,0,0,0.7);
+    backdrop-filter: blur(10px);
+    z-index: 100;
+    border-radius: 40px;
+    margin: 0 15px;
+    width: auto;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.3);
+    border: 1px solid rgba(255,255,255,0.3);
+}
+
+#lobby-buttons button {
+    cursor: pointer;
+    transition: transform 0.2s, box-shadow 0.2s;
+}
+
+#lobby-buttons button:active {
+    transform: scale(0.95);
 }
 
 #level-tag { background: #a29bfe; color: white; padding: 8px 30px; border-radius: 0 0 20px 20px; font-weight: bold; position: absolute; top: 0; z-index: 5; }
@@ -306,10 +354,10 @@ h1 { color: #ffffff; font-size: 28px; margin: 40px 0 15px 0; user-select: none; 
 .letter-btn { width: 54px; height: 54px; background: white; border: 3px solid #ffb6c1; border-radius: 12px; font-size: 24px; font-weight: bold; color: var(--dark-pink); cursor: pointer; box-shadow: 0 4px 0 #ffb6c1; display: flex; align-items: center; justify-content: center; text-transform: lowercase; }
 .letter-correct { background: #eee !important; color: #ccc !important; box-shadow: none !important; transform: translateY(3px); pointer-events: none; }
 
-.modal-overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); z-index: 2000; align-items: center; justify-content: center; }
+.modal-overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.85); z-index: 2000; align-items: center; justify-content: center; }
 #sticker-detail-modal { z-index: 7000; }
 .modal-content { 
-    width: 420px; max-height: 90vh; 
+    width: 420px; max-height: 85vh; 
     background: linear-gradient(135deg, #ffffff 0%, #fff0f5 50%, #ffe6f0 100%);
     border-radius: 35px; border: 8px solid #ffb6c1; padding: 30px 25px; position: relative; overflow-y: auto; 
     box-shadow: 0 0 30px rgba(255, 182, 193, 0.8), inset 0 0 20px rgba(255, 255, 255, 1);
@@ -323,35 +371,14 @@ h1 { color: #ffffff; font-size: 28px; margin: 40px 0 15px 0; user-select: none; 
 }
 .big-btn { padding: 15px 50px; font-size: 24px; border-radius: 50px; background: #ff69b4; color: white; border: none; cursor: pointer; margin-top: 30px; box-shadow: 0 5px 15px rgba(255, 20, 147, 0.5); border: 3px solid white; transition: 0.2s; }
 
-#gacha-lobby {
-    display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; 
-    background: url('assets/bg_main.png') center/cover no-repeat; z-index: 6000; 
-    flex-direction: column; padding: 20px; box-sizing: border-box; overflow-y: auto;
-}
-.lobby-header { display: flex; justify-content: space-between; align-items: center; background: rgba(255,255,255,0.8); padding: 15px 30px; border-radius: 30px; box-shadow: 0 5px 15px rgba(0,0,0,0.2); border: 3px solid #ffb6c1; margin-bottom: 20px; }
-.currency-box { display: flex; gap: 20px; font-size: 22px; font-weight: bold; }
-.currency-coin { color: #f39c12; text-shadow: 1px 1px 0 #fff; }
-.currency-dust { color: #8e44ad; text-shadow: 1px 1px 0 #fff; }
-
-.lobby-tabs { display: flex; justify-content: center; gap: 15px; margin-bottom: 20px; flex-wrap: wrap; }
-.tab-btn { padding: 12px 25px; font-size: 18px; font-weight: bold; background: white; border: 3px solid #ffb6c1; border-radius: 20px; cursor: pointer; color: #f06292; transition: 0.3s; }
-.tab-btn.active { background: #ffb6c1; color: white; box-shadow: 0 5px 10px rgba(255,182,193,0.5); transform: scale(1.05); }
-
-.lobby-content { flex: 1; background: rgba(255,255,255,0.85); border-radius: 30px; border: 5px solid white; padding: 20px; box-shadow: inset 0 0 20px rgba(0,0,0,0.1); display: none; overflow-y: auto; }
-.lobby-content.active { display: flex; flex-direction: column; align-items: center; }
-
-#gacha-machine-area { text-align: center; }
-.gacha-btn-group { display: flex; gap: 20px; justify-content: center; }
-.gacha-pull-btn { background: linear-gradient(180deg, #ffd700, #ff8c00); border: 4px solid white; color: white; font-size: 24px; font-weight: bold; padding: 15px 40px; border-radius: 50px; cursor: pointer; box-shadow: 0 5px 15px rgba(255,140,0,0.5); transition: 0.2s; }
-.gacha-pull-btn:active { transform: scale(0.95); }
-
-.sticker-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(100px, 1fr)); gap: 15px; width: 100%; max-width: 900px; }
+/* 大廳相關樣式 (彈窗內使用) */
+.sticker-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(90px, 1fr)); gap: 12px; width: 100%; }
 .sticker-card { aspect-ratio: 1; background: #fff; border-radius: 12px; display: flex; align-items: center; justify-content: center; position: relative; cursor: pointer; transition: 0.3s; overflow: hidden; flex-direction: column; }
 .sticker-card:hover { transform: scale(1.05); }
 .sticker-card img { width: 85%; max-height: 85%; object-fit: contain; }
-.sticker-id { position: absolute; top: 4px; left: 4px; font-size: 12px; font-weight: bold; background: rgba(255,255,255,0.9); padding: 2px 6px; border-radius: 6px; z-index: 5; }
+.sticker-id { position: absolute; top: 4px; left: 4px; font-size: 11px; font-weight: bold; background: rgba(255,255,255,0.9); padding: 2px 6px; border-radius: 6px; z-index: 5; }
 .sticker-locked { filter: brightness(0) opacity(0.2); }
-.card-stars { position: absolute; bottom: 20px; left: 50%; transform: translateX(-50%); font-size: 14px; letter-spacing: -2px; color: #ffd700; text-shadow: 1px 1px 2px #000; z-index: 5; white-space: nowrap; }
+.card-stars { position: absolute; bottom: 20px; left: 50%; transform: translateX(-50%); font-size: 12px; letter-spacing: -2px; color: #ffd700; text-shadow: 1px 1px 2px #000; z-index: 5; white-space: nowrap; }
 
 @keyframes rainbowGlow { 0%{border-color:#ff0000; box-shadow:0 0 15px #ff0000;} 33%{border-color:#00ff00; box-shadow:0 0 15px #00ff00;} 66%{border-color:#0000ff; box-shadow:0 0 15px #0000ff;} 100%{border-color:#ff0000; box-shadow:0 0 15px #ff0000;} }
 .rarity-SSR { border: 4px solid transparent; animation: rainbowGlow 2s linear infinite; background: linear-gradient(135deg, #fff 0%, #ffeaa7 100%); }
@@ -359,25 +386,15 @@ h1 { color: #ffffff; font-size: 28px; margin: 40px 0 15px 0; user-select: none; 
 .rarity-R { border: 4px solid #f1c40f; box-shadow: 0 0 10px #f1c40f; background: linear-gradient(135deg, #fff 0%, #fff8dc 100%); }
 .rarity-N { border: 3px solid #ecf0f1; background: linear-gradient(135deg, #fff 0%, #f0f3f4 100%); }
 
-.rarity-badge { position: absolute; bottom: 2px; right: 4px; font-size: 14px; font-weight: 900; font-style: italic; text-shadow: 1px 1px 0 #fff; z-index: 5; }
+.rarity-badge { position: absolute; bottom: 2px; right: 4px; font-size: 12px; font-weight: 900; font-style: italic; text-shadow: 1px 1px 0 #fff; z-index: 5; }
 .badge-SSR { color: #ff4757; } .badge-SR { color: #8e44ad; } .badge-R { color: #d35400; } .badge-N { color: #7f8c8d; }
 
-.wall-grid { display: flex; justify-content: center; gap: 20px; flex-wrap: wrap; margin-top: 30px; }
-.wall-slot { width: 140px; height: 140px; border: 4px dashed #ffb6c1; border-radius: 20px; display: flex; align-items: center; justify-content: center; background: rgba(255,255,255,0.5); cursor: pointer; position: relative; }
+.wall-grid { display: flex; justify-content: center; gap: 15px; flex-wrap: wrap; margin-top: 20px; }
+.wall-slot { width: 100px; height: 100px; border: 4px dashed #ffb6c1; border-radius: 20px; display: flex; align-items: center; justify-content: center; background: rgba(255,255,255,0.5); cursor: pointer; position: relative; }
 .wall-slot img { width: 90%; filter: drop-shadow(0 5px 10px rgba(0,0,0,0.2)); }
-.wall-slot:hover { background: rgba(255,182,193,0.3); }
 
-#gacha-animation-screen { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.9); z-index: 8000; flex-direction: column; align-items: center; justify-content: center; }
-#gacha-result-container { display: flex; flex-wrap: wrap; justify-content: center; gap: 20px; max-width: 800px; margin-top: 20px; }
-.gacha-pop-card { width: 160px; height: 160px; transform: scale(0); opacity: 0; }
-@keyframes gachaPopMulti {
-    0% { transform: scale(0) rotate(-360deg); opacity: 0; }
-    60% { transform: scale(1.2) rotate(10deg); opacity: 1; filter: brightness(1.5); }
-    80% { transform: scale(0.9) rotate(-5deg); opacity: 1; }
-    100% { transform: scale(1) rotate(0deg); opacity: 1; filter: brightness(1); }
-}
-.show-gacha-multi { animation: gachaPopMulti 0.6s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards !important; }
-#gacha-msg { color: white; font-size: 24px; margin-top: 40px; font-weight: bold; text-align: center; }
+.gacha-pull-btn { background: linear-gradient(180deg, #ffd700, #ff8c00); border: 4px solid white; color: white; font-size: 20px; font-weight: bold; padding: 12px 30px; border-radius: 50px; cursor: pointer; box-shadow: 0 5px 15px rgba(255,140,0,0.5); transition: 0.2s; }
+.gacha-pull-btn:active { transform: scale(0.95); }
 
 #buff-panel { background: rgba(255,255,255,0.9); padding: 15px; border-radius: 15px; border: 3px solid #ffb6c1; margin-bottom: 20px; width: 90%; text-align: center; font-weight: bold; color: #8e44ad; }
 
@@ -388,22 +405,9 @@ h1 { color: #ffffff; font-size: 28px; margin: 40px 0 15px 0; user-select: none; 
     100% { transform: translateX(600px) scale(4); opacity: 0; filter: brightness(1); } 
 }
 
-/* ★ 稀有度與增益粒子特效 */
-@keyframes ssrParticleAnim {
-    0% { transform: translate(0, 0) scale(1); opacity: 1; filter: hue-rotate(0deg); }
-    100% { transform: translate(var(--dx), var(--dy)) scale(0); opacity: 0; filter: hue-rotate(360deg); }
-}
-.ssr-particle {
-    position: absolute; width: 10px; height: 10px; border-radius: 50%;
-    background: white; box-shadow: 0 0 10px white, 0 0 20px white;
-    pointer-events: none; z-index: 1000;
-    animation: ssrParticleAnim 1.5s ease-out forwards;
-}
-
-/* ★ 艾德恩技能的專屬特效 */
+/* ★ 艾德恩技能特效 */
 .hero-front { z-index: 1000 !important; }
 .dragon-front { z-index: 950 !important; }
-
 .character-img-hero.casting-ult { animation: none !important; }
 
 @keyframes magicCircleScaleGlow {
@@ -424,3 +428,98 @@ h1 { color: #ffffff; font-size: 28px; margin: 40px 0 15px 0; user-select: none; 
     0% { transform: scale(1); }
     50% { transform: scale(1.2); filter: brightness(1.5); }
     100% { transform: scale(1); }
+}
+.hero-open-eye { animation: heroOpenEye 0.4s ease-out; }
+
+@keyframes goldLightningStrike {
+    0% { opacity: 0; } 
+    5%, 15%, 25%, 35% { opacity: 1; filter: brightness(2); }
+    10%, 20%, 30% { opacity: 0.3; }
+    50% { opacity: 1; transform: scaleY(1.1); }
+    100% { opacity: 0; transform: scaleY(0.8) translateY(100px); }
+}
+.gold-lightning {
+    position: absolute; top: 100px; left: var(--lx);
+    width: 80px; height: 250px; background-size: contain; background-repeat: no-repeat;
+    z-index: 109;
+    pointer-events: none;
+    animation: goldLightningStrike 0.6s ease-out forwards;
+    animation-delay: var(--ldelay);
+    filter: drop-shadow(0 0 10px var(--gold-lightning));
+}
+
+@keyframes giantSwordFallUpdate {
+    0% { transform: translateY(-800px) scale(0.8) rotate(0deg); opacity: 0; }
+    20% { opacity: 1; }
+    90% { transform: translateY(0) scale(1.2) rotate(0deg); opacity: 1; } 
+    100% { transform: translateY(0) scale(1.2) rotate(0deg); opacity: 1; } 
+}
+.giant-sword-with-effects {
+    position: absolute; bottom: 0px; right: 50px; 
+    width: 150px; 
+    z-index: 115; pointer-events: none;
+    animation: giantSwordFallUpdate 0.8s cubic-bezier(.5,0,1,1) forwards;
+    transform-origin: bottom center;
+    filter: drop-shadow(0 0 15px var(--gold-lightning)) drop-shadow(0 0 30px #ffffff);
+}
+.sword-lightning-wraps {
+    position: absolute; top: -50px; left: -25px; width: 150%; height: 150%;
+    background-size: contain; background-repeat: no-repeat; background-position: center;
+    animation: swordLightningWraps 0.3s ease-in infinite;
+    pointer-events: none; z-index: -1; 
+}
+@keyframes swordLightningWraps {
+    0% { opacity: 0; } 50% { opacity: 1; filter: brightness(1.5); } 100% { opacity: 0; }
+}
+
+@keyframes goldExplosion {
+    0% { transform: scale(0.1); opacity: 0; }
+    15% { transform: scale(3.5); opacity: 1; filter: brightness(2); }
+    50% { transform: scale(4.5); opacity: 1; filter: brightness(1.5); }
+    100% { transform: scale(5); opacity: 0; filter: brightness(1); }
+}
+.gold-explosion-fx {
+    position: absolute; 
+    bottom: 20px; 
+    right: 20px;
+    width: 300px; 
+    height: 300px; 
+    z-index: 120; 
+    pointer-events: none;
+    animation: goldExplosion 1s ease-out forwards;
+}
+
+@keyframes dragonShock {
+    0% { filter: brightness(1); }
+    5%, 25%, 45% { filter: brightness(3) sepia(1) saturate(10); transform: translate(-15px, -15px); }
+    15%, 35%, 55% { filter: brightness(2) sepia(1) saturate(8); transform: translate(15px, 15px); }
+    80% { filter: brightness(1.5) sepia(1) saturate(5); transform: translate(0, 0); }
+    100% { filter: brightness(1); }
+}
+.dragon-shock { animation: dragonShock 1s ease-out !important; }
+
+@keyframes severeShake {
+    0% { transform: translate(0, 0) scale(1); }
+    10% { transform: translate(-20px, -20px) scale(1.02); }
+    20% { transform: translate(20px, 20px) scale(1.02); }
+    30% { transform: translate(-20px, 20px) scale(1.02); }
+    40% { transform: translate(20px, -20px) scale(1.02); }
+    50% { transform: translate(-10px, -10px) scale(1.01); }
+    60% { transform: translate(10px, 10px) scale(1.01); }
+    70% { transform: translate(-10px, 10px) scale(1.01); }
+    80% { transform: translate(10px, -10px) scale(1.01); }
+    90% { transform: translate(0px, 0px) scale(1); }
+    100% { transform: translate(0, 0) scale(1); }
+}
+.severe-shake { animation: severeShake 0.8s cubic-bezier(.36,.07,.19,.97) both; }
+
+@keyframes lightningParticle {
+    0% { transform: translate(0, 0) scale(1); opacity: 1; }
+    100% { transform: translate(var(--pdx), var(--pdy)) rotate(360deg) scale(0); opacity: 0; }
+}
+.lightning-particle {
+    position: absolute; width: 8px; height: 8px; background: var(--gold-lightning); 
+    box-shadow: 0 0 5px var(--gold-lightning); border-radius: 50%;
+    pointer-events: none; z-index: 125;
+    animation: lightningParticle 1.2s ease-out forwards;
+}
