@@ -1,4 +1,4 @@
-/* style.css - iPhone 排版修正版 + 底部按鈕適配 */
+/* style.css - iPhone 排版修正版 */
 :root { 
     --main-pink: #ffb6c1; 
     --dark-pink: #f06292;
@@ -75,7 +75,6 @@ body {
     box-sizing: border-box; border: 10px solid #ffffff; outline: 2px solid #ffb6c1;
     opacity: 0; transition: opacity 1s, background-image 0.5s ease; overflow: hidden;
     padding-bottom: max(50px, env(safe-area-inset-bottom, 20px));
-    margin-bottom: 70px;
 }
 .game-show { opacity: 1 !important; }
 
@@ -84,7 +83,7 @@ body {
     #game-container { transform: scale(1.2); transform-origin: center center; }
 }
 
-/* ===== 手機 RWD (完整修正版) ===== */
+/* ===== 手機 RWD ===== */
 @media (max-width: 600px) {
     body { 
         padding: 0; 
@@ -101,12 +100,11 @@ body {
         outline: none;
         box-shadow: none;
         padding: 12px 12px 20px 12px;
-        padding-bottom: max(80px, env(safe-area-inset-bottom, 80px));
+        padding-bottom: max(30px, env(safe-area-inset-bottom, 30px));
         box-sizing: border-box;
         display: flex;
         flex-direction: column;
         justify-content: space-between;
-        margin-bottom: 0;
     }
 
     #game-container h1 {
@@ -244,49 +242,6 @@ body {
         padding: 4px 6px;
         font-size: 11px;
     }
-
-    /* 底部大廳按鈕 */
-    #lobby-buttons {
-        gap: 6px;
-        padding: 8px 12px;
-        margin: 0 8px;
-        bottom: env(safe-area-inset-bottom, 10px);
-    }
-    
-    #lobby-buttons button {
-        padding: 6px 12px;
-        font-size: 12px !important;
-    }
-}
-
-/* 底部大廳按鈕樣式 */
-#lobby-buttons {
-    position: fixed;
-    bottom: 10px;
-    left: 0;
-    right: 0;
-    display: flex;
-    justify-content: center;
-    gap: 8px;
-    flex-wrap: wrap;
-    padding: 10px;
-    background: rgba(0,0,0,0.7);
-    backdrop-filter: blur(10px);
-    z-index: 100;
-    border-radius: 40px;
-    margin: 0 15px;
-    width: auto;
-    box-shadow: 0 4px 15px rgba(0,0,0,0.3);
-    border: 1px solid rgba(255,255,255,0.3);
-}
-
-#lobby-buttons button {
-    cursor: pointer;
-    transition: transform 0.2s, box-shadow 0.2s;
-}
-
-#lobby-buttons button:active {
-    transform: scale(0.95);
 }
 
 #level-tag { background: #a29bfe; color: white; padding: 8px 30px; border-radius: 0 0 20px 20px; font-weight: bold; position: absolute; top: 0; z-index: 5; }
@@ -371,7 +326,24 @@ h1 { color: #ffffff; font-size: 28px; margin: 40px 0 15px 0; user-select: none; 
 }
 .big-btn { padding: 15px 50px; font-size: 24px; border-radius: 50px; background: #ff69b4; color: white; border: none; cursor: pointer; margin-top: 30px; box-shadow: 0 5px 15px rgba(255, 20, 147, 0.5); border: 3px solid white; transition: 0.2s; }
 
-/* 大廳相關樣式 (彈窗內使用) */
+/* 大廳相關樣式 */
+#gacha-lobby {
+    display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; 
+    background: url('assets/bg_main.png') center/cover no-repeat; z-index: 6000; 
+    flex-direction: column; padding: 20px; box-sizing: border-box; overflow-y: auto;
+}
+.lobby-header { display: flex; justify-content: space-between; align-items: center; background: rgba(255,255,255,0.8); padding: 15px 30px; border-radius: 30px; box-shadow: 0 5px 15px rgba(0,0,0,0.2); border: 3px solid #ffb6c1; margin-bottom: 20px; }
+.currency-box { display: flex; gap: 20px; font-size: 22px; font-weight: bold; }
+.currency-coin { color: #f39c12; text-shadow: 1px 1px 0 #fff; }
+.currency-dust { color: #8e44ad; text-shadow: 1px 1px 0 #fff; }
+
+.lobby-tabs { display: flex; justify-content: center; gap: 15px; margin-bottom: 20px; flex-wrap: wrap; }
+.tab-btn { padding: 12px 25px; font-size: 18px; font-weight: bold; background: white; border: 3px solid #ffb6c1; border-radius: 20px; cursor: pointer; color: #f06292; transition: 0.3s; }
+.tab-btn.active { background: #ffb6c1; color: white; box-shadow: 0 5px 10px rgba(255,182,193,0.5); transform: scale(1.05); }
+
+.lobby-content { flex: 1; background: rgba(255,255,255,0.85); border-radius: 30px; border: 5px solid white; padding: 20px; box-shadow: inset 0 0 20px rgba(0,0,0,0.1); display: none; overflow-y: auto; }
+.lobby-content.active { display: flex; flex-direction: column; align-items: center; }
+
 .sticker-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(90px, 1fr)); gap: 12px; width: 100%; }
 .sticker-card { aspect-ratio: 1; background: #fff; border-radius: 12px; display: flex; align-items: center; justify-content: center; position: relative; cursor: pointer; transition: 0.3s; overflow: hidden; flex-direction: column; }
 .sticker-card:hover { transform: scale(1.05); }
@@ -522,4 +494,40 @@ h1 { color: #ffffff; font-size: 28px; margin: 40px 0 15px 0; user-select: none; 
     box-shadow: 0 0 5px var(--gold-lightning); border-radius: 50%;
     pointer-events: none; z-index: 125;
     animation: lightningParticle 1.2s ease-out forwards;
+}
+
+/* 手機版大廳修正 */
+@media (max-width: 600px) {
+    .lobby-header {
+        flex-direction: column;
+        gap: 10px;
+        padding: 12px;
+    }
+    .lobby-header > div:first-child {
+        font-size: 20px !important;
+    }
+    .currency-box {
+        justify-content: center;
+        gap: 15px;
+        font-size: 16px;
+    }
+    .lobby-tabs {
+        gap: 8px;
+    }
+    .tab-btn {
+        padding: 8px 15px;
+        font-size: 14px;
+    }
+    .sticker-grid {
+        grid-template-columns: repeat(auto-fill, minmax(75px, 1fr));
+        gap: 8px;
+    }
+    .wall-slot {
+        width: 80px;
+        height: 80px;
+    }
+    .modal-content {
+        width: 90%;
+        padding: 20px 15px;
+    }
 }
