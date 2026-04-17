@@ -4,34 +4,27 @@
 const rarityFolderMap = { 'SSR': 'ssr', 'SR': 'sr', 'R': 'r', 'N': 'normal' };
 
 // ★ 註冊商店與轉蛋機專屬音樂 (綁定全域)
-window.shopBgm = window.shopBgm || new Audio('assets/shop_bgm.mp3');
+window.shopBgm = window.shopBgm || new Audio('assets/music/shop_bgm.mp3');
 window.shopBgm.loop = true;
 
-window.gachaBgm = window.gachaBgm || new Audio('assets/gacha_bgm.mp3');
+window.gachaBgm = window.gachaBgm || new Audio('assets/music/gacha_bgm.mp3');
 window.gachaBgm.loop = true;
 
 const FALLBACK_IMAGE = 'assets/meteor.png';
 
 function getStickerDisplayId(s) {
     let rank = stickerDB.filter(x => x.rarity === s.rarity && x.id <= s.id).length;
-    // 強制將組合出來的 ID 轉成小寫 (例如 N36 變成 n36)
     return (s.rarity + rank).toLowerCase(); 
 }
 
 function getStickerAssets(s) {
-    // 取得資料夾名稱，如果沒有對應到，預設使用 'normal'
     let folder = rarityFolderMap[s.rarity] || 'normal';
     let baseName = getStickerDisplayId(s);
-    
-    // 組裝路徑，確保全部都是小寫！
     return { 
         img: `sticker/${folder}/${baseName}.png`, 
         vid: `sticker_video/${folder}/intro${baseName}.mp4` 
     };
 }
-
-// ... 下面的程式碼保持不變 ...
-// (為了版面簡潔，我省略了後面的程式碼，請保留你原本修改過 outerHTML 的版本)
 
 function checkUnlocks() { 
     if(!window.gachaData || !window.gachaData.collection) {
@@ -311,7 +304,6 @@ function buildShopUI() {
         card.innerHTML = `<div class="sticker-id" style="width: auto; padding: 2px 6px; border-radius: 10px; font-size: 13px;">${getStickerDisplayId(s)}</div>`;
         
         let assets = getStickerAssets(s);
-        // 使用 this.src 避免 outerHTML 的錯誤
         card.innerHTML += `<img src="${assets.img}" onerror="this.src='${FALLBACK_IMAGE}';">`;
         
         if(stars > 0) card.innerHTML += `<div class="card-stars">${'⭐'.repeat(stars)}</div>`;
@@ -508,7 +500,6 @@ function updateLobbyUI() {
             let imgSrc = assets.img; 
             
             if(isOwned) {
-                // 使用 this.src 避免 outerHTML 的錯誤
                 card.innerHTML += `<img src="${imgSrc}" onerror="this.src='${FALLBACK_IMAGE}';">`;
                 if(stars > 0) card.innerHTML += `<div class="card-stars">${'⭐'.repeat(stars)}</div>`;
             } else card.innerHTML += `<div style="font-size:30px; color:#ccc;">?</div>`;
@@ -539,7 +530,8 @@ function updateLobbyUI() {
                             let totalHints = matchedHero.baseHints + window.hintBuffAmt; let hintText = window.hintBuffAmt > 0 ? `${totalHints} (${matchedHero.baseHints}+${window.hintBuffAmt})` : `${totalHints}`;
 
                             if(dTitle) dTitle.innerText = `${matchedHero.name} - ${matchedHero.title}`;
-                            if(dDesc) dDesc.innerText = `✨ 特色：${matchedHero.feature}\n\n📊 最終能力：\n血量：${hpText}💖\n提示能力：${hintText}🪄\n基礎爆擊率：${window.critRate}%💥\n\n⚔️ 招式列表：\n1. ${matchedHero.skills[0]}\n2. ${matchedHero.skills[1]}\n3. ${matchedHero.skills[2]}\n${s4Text}` + starText;
+                            // ★ 修改處：招式列表加上攻擊力顯示
+                            if(dDesc) dDesc.innerText = `✨ 特色：${matchedHero.feature}\n\n📊 最終能力：\n血量：${hpText}💖\n提示能力：${hintText}🪄\n基礎爆擊率：${window.critRate}%💥\n\n⚔️ 招式列表：\n1. ${matchedHero.skills[0]} (傷害 ${matchedHero.baseDmg[0]})\n2. ${matchedHero.skills[1]} (傷害 ${matchedHero.baseDmg[1]})\n3. ${matchedHero.skills[2]} (傷害 ${matchedHero.baseDmg[2]})\n${s4Text}` + starText;
                         } else {
                             if(dTitle) dTitle.innerText = s.name;
                             if(dDesc) dDesc.innerText = s.desc || "這是一張閃耀著魔法光芒的貼紙！";
@@ -570,7 +562,6 @@ function updateLobbyUI() {
             if(slotId !== null && enabledStickers.includes(slotId)) {
                 let s = stickerDB[slotId]; slot.classList.add(`rarity-${s.rarity}`);
                 let imgSrc = getStickerAssets(s).img; 
-                // 使用 this.src 避免 outerHTML 的錯誤
                 slot.innerHTML = `<img src="${imgSrc}" onerror="this.src='${FALLBACK_IMAGE}';">`;
             } else { 
                 slot.innerHTML = `<div style="font-size:40px; color:#ffc1e3;">+</div>`; 
@@ -650,7 +641,6 @@ function pullGacha(times) {
             else if(res.rarity === 'SR') glowClass = 'sr-glow';
             else if(res.rarity === 'R') glowClass = 'r-glow';
             
-            // 使用 this.src 避免 outerHTML 的錯誤
             let cardHTML = `<div class="sticker-card rarity-${res.rarity} gacha-pop-card show-gacha-multi" style="animation-delay: ${delay}s"><div class="sticker-id" style="width: auto; padding: 2px 6px; border-radius: 10px; font-size: 13px;">${getStickerDisplayId(res)}</div><img src="${imgSrc}" class="${glowClass}" onerror="this.src='${FALLBACK_IMAGE}';"><div class="rarity-badge badge-${res.rarity}">${res.rarity}</div></div>`;
             resContainer.insertAdjacentHTML('beforeend', cardHTML);
         });

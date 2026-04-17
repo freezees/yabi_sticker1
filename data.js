@@ -3,7 +3,7 @@ const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
 
 let isMusicPlaying = false, voiceVolume = 1.0, isWait = false;
 const bgm = document.getElementById('my-bgm'), winBgm = document.getElementById('win-bgm'), failBgm = document.getElementById('fail-bgm');
-let lobbyBgm = new Audio('Gacha_machine.mp3'); lobbyBgm.loop = true;
+let lobbyBgm = new Audio('assets/music/gacha_bgm.mp3'); lobbyBgm.loop = true;
 
 let pendingDamageForFeedback = 0;
 

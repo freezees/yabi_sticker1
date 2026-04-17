@@ -22,7 +22,6 @@ window.extraCoinsBonus = 0;
 window.hpBuffAmt = 0;
 window.hintBuffAmt = 0;
 window.dmgBonus = [0, 0, 0]; 
-window.maxPHP = 5;
 window.maxHints = 3;
 
 function calcBuffs() {
@@ -40,7 +39,7 @@ function calcBuffs() {
 
     // 🟪 紫色 (SR): 1張 +1% 爆擊，五星再 +1%
     window.critRate = 5 + (counts['SR'] * 1) + (star5Counts['SR'] * 1);
-    if(window.critRate > 100) window.critRate = 100; // 爆擊上限
+    if(window.critRate > 100) window.critRate = 100;
 
     // 🟨 金色 (R): 5張 +1 提示，五星再 +1
     window.hintBuffAmt = Math.floor(counts['R'] / 5) + (star5Counts['R'] * 1);
@@ -49,9 +48,21 @@ function calcBuffs() {
     // ⬜ 普通 (N): 10張 +1 代幣
     window.extraCoinsBonus = Math.floor(counts['N'] / 10);
 
-    // 🌈 彩色 (SSR): 1張 +1 血量
+    // 🌈 彩色 (SSR): 1張 +1 血量 (只儲存加成值，不設定 maxPHP)
     window.hpBuffAmt = counts['SSR'];
-    window.maxPHP = 5 + window.hpBuffAmt;
+}
+
+// 根據所選英雄計算實際戰鬥血量
+function getHeroMaxHP() {
+    const hero = heroes[selectedHeroIdx];
+    const baseHp = (hero && hero.baseHp) ? hero.baseHp : 5;
+    return baseHp + (window.hpBuffAmt || 0);
+}
+// 根據所選英雄計算實際提示次數
+function getHeroMaxHints() {
+    const hero = heroes[selectedHeroIdx];
+    const baseHints = (hero && hero.baseHints) ? hero.baseHints : 3;
+    return baseHints + (window.hintBuffAmt || 0);
 }
 
 function autoRepairDOM() {
@@ -172,6 +183,7 @@ function ensureSettingsModal() {
             <button class="big-btn" style="width:100%; margin-top:15px; font-size:22px; background:linear-gradient(180deg, #ff9a9e, #fecfef); color:#d63031; border:4px solid white;" onclick="quitToMain()">🚪 放棄並回首頁</button>
             <button class="big-btn" style="width:100%; margin-top:15px; font-size:22px; background:linear-gradient(180deg, #ffd700, #ff8c00); border:4px solid white;" onclick="toggleSettings(false); openLobby();">📔 前往大廳</button>
         </div>
+        </div>
     </div>`);
 }
 
@@ -184,3 +196,4 @@ function safeInitGame() {
 }
 document.addEventListener('DOMContentLoaded', safeInitGame);
 if (document.readyState === 'complete' || document.readyState === 'interactive') { setTimeout(safeInitGame, 100); }
+

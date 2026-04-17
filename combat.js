@@ -1,8 +1,24 @@
-// combat.js - 戰鬥迴圈與爆擊系統 (寶箱互動動畫版)
+// combat.js - 戰鬥迴圈與爆擊系統 (寶箱互動動畫版) - 修正第二關死亡卡住問題
 
 window.hasUsedUlt = false; 
 window.pendingIsCrit = false; 
 window.pendingDamageForFeedback = 0; 
+
+// ★ 隨機戰鬥 BGM 系統
+const battleBgmList = ['assets/music/bgm.mp3', 'assets/music/bgm2.mp3', 'assets/music/bgm3.mp3', 'assets/music/bgm4.mp3', 'assets/music/bgm5.mp3'];
+let currentBattleBgmIdx = -1;
+
+function playRandomBattleBgm() {
+    // 隨機選一首，但避免重複播放同一首
+    let pool = battleBgmList.map((_, i) => i).filter(i => i !== currentBattleBgmIdx);
+    currentBattleBgmIdx = pool[Math.floor(Math.random() * pool.length)];
+    const newSrc = battleBgmList[currentBattleBgmIdx];
+    bgm.pause();
+    bgm.src = newSrc;
+    bgm.currentTime = 0;
+    bgm.volume = 0.1;
+    bgm.play().then(() => isMusicPlaying = true).catch(e => null);
+}
 
 function startGame() {
     if (audioCtx.state === 'suspended') audioCtx.resume();
@@ -11,7 +27,10 @@ function startGame() {
     if(!Array.isArray(activeLessons) || activeLessons.length === 0) activeLessons = ["lesson1"];
     buildCurrentWordList();
 
-    calcBuffs(); pHP = window.maxPHP; hintsLeft = window.maxHints; currentLvl = 1;
+    calcBuffs(); 
+    pHP = getHeroMaxHP();
+    hintsLeft = getHeroMaxHints(); 
+    currentLvl = 1;
     dHP = (window.gachaData && window.gachaData.coins >= 99999) ? 1 : 5;
     window.hasUsedUlt = false; 
     
@@ -28,7 +47,7 @@ function startGame() {
     
     let startScreen = document.getElementById('start-screen'); if(startScreen) startScreen.style.opacity = '0';
     let gameCont = document.getElementById('game-container'); if(gameCont) gameCont.classList.add('game-show');
-    bgm.volume = 0.1; bgm.play().then(() => isMusicPlaying = true).catch(e => null);
+    playRandomBattleBgm();
     setTimeout(() => { updateHP(); nextTask(); if(startScreen) startScreen.style.display = 'none'; }, 1000);
 }
 
@@ -52,12 +71,13 @@ function restartFromFailure() {
     if(!Array.isArray(activeLessons) || activeLessons.length === 0) activeLessons = ["lesson1"];
     buildCurrentWordList();
 
-    calcBuffs(); pHP = window.maxPHP;
+    calcBuffs(); 
+    pHP = getHeroMaxHP();
     dHP = (window.gachaData && window.gachaData.coins >= 99999) ? 1 : 5;
-    currentLvl = 1; isWait = false; hintsLeft = window.maxHints;
+    currentLvl = 1; isWait = false; hintsLeft = getHeroMaxHints();
     window.hasUsedUlt = false; 
     
-    failBgm.pause(); failBgm.currentTime = 0; bgm.volume = 0.1; if(isMusicPlaying) bgm.play();
+    failBgm.pause(); failBgm.currentTime = 0; if(isMusicPlaying) playRandomBattleBgm(); else { bgm.src = battleBgmList[Math.floor(Math.random()*battleBgmList.length)]; bgm.currentTime = 0; }
     document.getElementById('game-over-screen').style.display = 'none';
     let heroImg = document.getElementById('hero-img'); 
     if(heroImg) { heroImg.src = `${heroes[selectedHeroIdx].folder}/hero.png`; heroImg.classList.remove('ssr-glow'); }
@@ -69,9 +89,17 @@ function updateHP() {
     if(pHPText) pHPText.innerHTML = `<span style="color:#ff6b6b">💖</span> ${Math.max(0, pHP)}`;
     if(dHPText) dHPText.innerHTML = `<span style="color:#ff6b6b">💖</span> ${Math.max(0, dHP)}`;
     if(pHP <= 0 && !isWait) { 
-        isWait = true; bgm.pause(); failBgm.play(); 
+        isWait = true; 
+        bgm.pause(); 
+        failBgm.play().catch(e => {}); 
         let heroImg = document.getElementById('hero-img'); if(heroImg) heroImg.src = `${heroes[selectedHeroIdx].folder}/dead.png`; 
-        setTimeout(() => { let goScreen = document.getElementById('game-over-screen'); if(goScreen) goScreen.style.display = 'flex'; let tp = document.getElementById('test-panel'); if(tp) tp.style.display = 'none'; }, 1500); 
+        let goDelay = (currentLvl === 2) ? 2500 : 1500;
+        setTimeout(() => { 
+            let goScreen = document.getElementById('game-over-screen'); 
+            if(goScreen) goScreen.style.display = 'flex'; 
+            let tp = document.getElementById('test-panel'); 
+            if(tp) tp.style.display = 'none'; 
+        }, goDelay); 
     }
 }
 
@@ -82,7 +110,6 @@ function nextTask() {
     const dragonImg = document.getElementById('dragon-img'), qImg = document.getElementById('question-img'), container = document.getElementById('game-container'), lvlTag = document.getElementById('level-tag');
     const optCont = document.getElementById('options-container'), spellCont = document.getElementById('spelling-container'), testPanel = document.getElementById('test-panel');
 
-    // 判斷是否為測試模式 (貼紙全滿星)
     const isTestMode = window.gachaData && window.gachaData.coins >= 99999;
 
     if(currentLvl === 2) { 
@@ -202,7 +229,42 @@ function startSpell() {
                 if(spellingText.length === currentWord.length) checkChoice(true);
             } else { 
                 pHP -= (currentLvl === 2 ? 2 : 1); 
-                feedback(false); 
+                if(currentLvl === 2) speak(currentWord, 'en');
+                
+                // ★ 修正：第二關死亡時的正確處理流程
+                if(pHP <= 0 && currentLvl === 2) {
+                    if(isWait) return;
+                    
+                    isWait = true;
+                    let wd = document.getElementById('word-display');
+                    if(wd) { 
+                        wd.innerText = currentWord.toLowerCase(); 
+                        wd.style.color = '#ff4757'; 
+                        wd.style.fontSize = '36px'; 
+                        wd.style.fontWeight = 'bold'; 
+                        wd.style.textShadow = '0 0 10px #ff4757'; 
+                    }
+                    showBattleMsg(`正確答案是：${currentWord.toLowerCase()}`);
+                    feedback(false);
+                    
+                    // ★ 直接觸發遊戲結束畫面
+                    setTimeout(() => { 
+                        if(pHP <= 0) {
+                            bgm.pause(); 
+                            failBgm.play().catch(e => {});
+                            let goScreen = document.getElementById('game-over-screen'); 
+                            if(goScreen) goScreen.style.display = 'flex'; 
+                            let tp = document.getElementById('test-panel'); 
+                            if(tp) tp.style.display = 'none';
+                            let heroImg = document.getElementById('hero-img'); 
+                            if(heroImg && heroImg.src.indexOf('dead') === -1) {
+                                heroImg.src = `${heroes[selectedHeroIdx].folder}/dead.png`;
+                            }
+                        }
+                    }, 2500);
+                } else {
+                    feedback(false);
+                }
             } 
         };
         if(grid) grid.appendChild(b);
@@ -225,7 +287,7 @@ function startSpell() {
         hintBtn = document.createElement('button'); hintBtn.id = 'hint-btn'; hintBtn.style.cssText = 'background: #ffeaa7; border: 3px solid #fdcb6e; border-radius: 20px; padding: 10px 20px; color: #d35400; font-size: 16px; font-weight: bold; cursor: pointer;';
         hintBtn.onclick = showHint; btnContainer.appendChild(hintBtn);
     }
-    hintBtn.innerText = `🪄 提示 (${hintsLeft}/${window.maxHints})`;
+    hintBtn.innerText = `🪄 提示 (${hintsLeft}/${getHeroMaxHints()})`;
     if(hintsLeft > 0) { hintBtn.style.opacity = "1"; hintBtn.style.cursor = "pointer"; hintBtn.disabled = false; } else { hintBtn.style.opacity = "0.5"; hintBtn.style.cursor = "not-allowed"; hintBtn.disabled = true; }
 }
 
@@ -277,7 +339,6 @@ function triggerVictory() {
         vsScreen.style.backgroundImage = `url('assets/bg_main.png')`; 
         let nsd = document.getElementById('new-sticker-display'); 
         
-        // 加入專屬震動 CSS 動畫
         nsd.innerHTML = `
             <style>
                 @keyframes superShake {
@@ -310,17 +371,14 @@ function triggerVictory() {
         let imgTarget = document.getElementById('chest-img-target');
         let hintText = document.getElementById('chest-click-hint');
 
-        // 綁定點擊事件
         if(chestInt && imgTarget) {
             chestInt.onclick = () => {
-                chestInt.onclick = null; // 關閉連點
+                chestInt.onclick = null;
                 
-                // 觸發震動與發光動畫
                 imgTarget.style.animation = 'superShake 0.15s infinite';
                 imgTarget.style.filter = 'drop-shadow(0 0 40px #ffd700) brightness(1.3)';
                 if(hintText) hintText.innerText = "✨ 開啟中... ✨";
 
-                // 等待 1.5 秒後揭曉獎勵
                 setTimeout(() => {
                     chestInt.style.display = 'none';
                     chestRes.style.display = 'flex';
