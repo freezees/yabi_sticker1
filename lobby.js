@@ -1,4 +1,4 @@
-// lobby.js - 精簡彈窗版大廳
+// lobby.js - 精簡彈窗版大廳 (修復關閉問題)
 
 const rarityFolderMap = { 'SSR': 'ssr', 'SR': 'sr', 'R': 'r', 'N': 'normal' };
 const FALLBACK_IMAGE = 'assets/meteor.png';
@@ -136,7 +136,7 @@ function savePoolEditorByCount() {
     alert("✅ 卡池設定已儲存！");
 }
 
-// ========== 更新大廳 UI（只顯示加成 + 錢幣）==========
+// ========== 更新大廳 UI ==========
 function updateLobbyUI() {
     if (typeof calcBuffs === 'function') calcBuffs();
     const coinEl = document.getElementById('lobby-coin-val');
@@ -150,7 +150,7 @@ function updateLobbyUI() {
     }
 }
 
-// ========== 彈窗內容產生器 ==========
+// ========== 彈窗管理（修復版）==========
 function openModal(contentId) {
     const modal = document.getElementById('lobby-modal');
     const content = document.getElementById('lobby-modal-content');
@@ -170,10 +170,23 @@ function openModal(contentId) {
 }
 
 function closeModal() {
-    document.getElementById('lobby-modal').style.display = 'none';
+    const modal = document.getElementById('lobby-modal');
+    if (modal) {
+        modal.style.display = 'none';
+    }
 }
 
-// 轉蛋內容
+// 點擊 modal 背景也可以關閉
+document.addEventListener('click', function(e) {
+    const modal = document.getElementById('lobby-modal');
+    if (modal && modal.style.display === 'flex') {
+        if (e.target === modal) {
+            closeModal();
+        }
+    }
+});
+
+// ========== 彈窗內容產生器 ==========
 function buildGachaContent() {
     updateLobbyUI();
     return `
@@ -192,7 +205,6 @@ function buildGachaContent() {
     `;
 }
 
-// 商店內容
 function buildShopContent() {
     updateLobbyUI();
     let html = `<div style="text-align:center; margin-bottom:15px;"><span style="background:rgba(0,0,0,0.7); padding:8px 20px; border-radius:30px; font-size:22px;">✨ 星塵：${window.gachaData.dust}</span></div>`;
@@ -223,7 +235,6 @@ function buildShopContent() {
     return html;
 }
 
-// 所有貼紙內容
 function buildCollectionContent() {
     updateLobbyUI();
     let owned = window.gachaData.collection.filter(id => enabledStickers.includes(id)).length;
@@ -246,7 +257,6 @@ function buildCollectionContent() {
     return html;
 }
 
-// 展示牆內容
 function buildWallContent() {
     let html = '<div class="wall-grid" style="flex-wrap:wrap; justify-content:center;">';
     window.gachaData.wall.forEach((slotId, index) => {
@@ -262,7 +272,6 @@ function buildWallContent() {
     return html;
 }
 
-// 單字本內容
 function buildLessonsContent() {
     let html = '<div style="font-size:20px; font-weight:bold; text-align:center; margin-bottom:15px;">📖 選擇單字庫</div>';
     html += '<div style="display:flex; flex-direction:column; gap:10px;">';
@@ -283,7 +292,6 @@ function buildLessonsContent() {
     return html;
 }
 
-// 戰報內容
 function buildReportContent() {
     let log = window.studyLog || {};
     let arr = Object.keys(log).map(w => {
@@ -297,13 +305,12 @@ function buildReportContent() {
     html += '<tr style="background:#ffb6c1;"><th>單字</th><th>✅</th><th>❌</th><th>錯誤率</th></tr>';
     arr.slice(0, 30).forEach(item => {
         let errColor = item.p >= 50 ? '#e74c3c' : '#555';
-        html += `<tr><td style="padding:8px; font-weight:bold;">${item.word}</td><td style="color:#2ecc71;">${item.s}</td><td style="color:${errColor};">${item.f}</td><td style="color:${errColor};">${item.p}%</td></tr>`;
+        html += `<tr style="border-bottom:1px solid #ffe6f0;"><td style="padding:8px; font-weight:bold;">${item.word}</td><td style="color:#2ecc71;">${item.s}</td><td style="color:${errColor};">${item.f}</td><td style="color:${errColor};">${item.p}%</td></tr>`;
     });
     html += '</table></div>';
     return html;
 }
 
-// 規則內容
 function buildRulesContent() {
     return `
         <h2 style="text-align:center;">📜 遊戲規則</h2>
