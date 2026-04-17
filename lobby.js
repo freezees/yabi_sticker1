@@ -594,7 +594,7 @@ function closeLobby() {
 function createLobbyUI() {
     if (document.getElementById('gacha-lobby')) return;
     document.body.insertAdjacentHTML('beforeend', `
-        <div id="gacha-lobby" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:url('assets/bg_main.png') center/cover no-repeat; z-index:6000; flex-direction:column; padding:20px; box-sizing:border-box; overflow-y:auto;">
+        <div id="gacha-lobby" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:url('assets/bg_lobby.png') center/cover no-repeat; z-index:6000; flex-direction:column; padding:20px; box-sizing:border-box; overflow-y:auto;">
             <div class="lobby-header" style="display:flex; justify-content:space-between; align-items:center; background:rgba(255,255,255,0.8); padding:15px 20px; border-radius:30px; margin-bottom:20px;">
                 <div style="font-size:24px; font-weight:bold; color:#f06292;">📔 魔法圖鑑大廳</div>
                 <div style="display:flex; gap:15px; font-size:20px; font-weight:bold;">
