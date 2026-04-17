@@ -1,12 +1,19 @@
-// lobby.js - 精簡彈窗版大廳 (修復關閉問題)
+// lobby.js - 精簡彈窗版大廳 (完整修復版)
 
 const rarityFolderMap = { 'SSR': 'ssr', 'SR': 'sr', 'R': 'r', 'N': 'normal' };
 const FALLBACK_IMAGE = 'assets/meteor.png';
+
+// 大廳背景音樂
+window.lobbyBgm = window.lobbyBgm || new Audio('assets/music/gacha_bgm.mp3');
+window.lobbyBgm.loop = true;
 
 window.shopBgm = window.shopBgm || new Audio('assets/music/shop_bgm.mp3');
 window.shopBgm.loop = true;
 window.gachaBgm = window.gachaBgm || new Audio('assets/music/gacha_bgm.mp3');
 window.gachaBgm.loop = true;
+
+// 記錄目前大廳音樂是否正在播放
+let isLobbyMusicPlaying = false;
 
 // ========== 貼紙輔助函數 ==========
 function getStickerDisplayId(s) {
@@ -86,7 +93,7 @@ function openPoolEditor() {
 
     m.innerHTML = `
     <div class="modal-content" style="max-width: 500px; width: 90%; text-align: center;">
-        <button class="close-btn" onclick="document.getElementById('pool-edit-modal').style.display='none'">X</button>
+        <button class="close-btn" onclick="closePoolEditor()">X</button>
         <h2 style="color:#8e44ad; margin-bottom: 20px;">⚙️ 快速開放設定</h2>
         <div style="font-size:16px; color:#666; margin-bottom:20px;">請輸入各稀有度要開放「前幾張」貼紙：</div>
         <div style="display:flex; flex-direction:column; gap:15px; background:#f9f9f9; padding:20px; border-radius:15px; border:2px solid #ddd;">
@@ -112,6 +119,11 @@ function openPoolEditor() {
     m.style.display = 'flex';
 }
 
+function closePoolEditor() {
+    const modal = document.getElementById('pool-edit-modal');
+    if (modal) modal.style.display = 'none';
+}
+
 function savePoolEditorByCount() {
     let limits = {
         'SSR': parseInt(document.getElementById('input-ssr').value) || 0,
@@ -129,7 +141,7 @@ function savePoolEditorByCount() {
     if (!newEnabled.includes(1)) newEnabled.push(1);
     enabledStickers = newEnabled;
     localStorage.setItem('dragonGameEnabledStickers', JSON.stringify(enabledStickers));
-    document.getElementById('pool-edit-modal').style.display = 'none';
+    closePoolEditor();
     updateLobbyUI();
     checkUnlocks();
     changeHeroSelection(0);
@@ -150,30 +162,80 @@ function updateLobbyUI() {
     }
 }
 
-// ========== 彈窗管理（修復版）==========
-function openModal(contentId) {
-    const modal = document.getElementById('lobby-modal');
-    const content = document.getElementById('lobby-modal-content');
-    if (!modal || !content) return;
-
-    if (contentId === 'gacha') content.innerHTML = buildGachaContent();
-    else if (contentId === 'shop') content.innerHTML = buildShopContent();
-    else if (contentId === 'collection') content.innerHTML = buildCollectionContent();
-    else if (contentId === 'wall') content.innerHTML = buildWallContent();
-    else if (contentId === 'lessons') {
-        if (!verifyParent()) return;
-        content.innerHTML = buildLessonsContent();
-    } else if (contentId === 'report') content.innerHTML = buildReportContent();
-    else if (contentId === 'rules') content.innerHTML = buildRulesContent();
-
-    modal.style.display = 'flex';
+// ========== 大廳音樂控制 ==========
+function startLobbyMusic() {
+    if (window.lobbyBgm) {
+        window.lobbyBgm.currentTime = 0;
+        window.lobbyBgm.volume = typeof bgm !== 'undefined' ? bgm.volume : 0.1;
+        window.lobbyBgm.play().catch(e => console.log('lobby music error'));
+        isLobbyMusicPlaying = true;
+    }
 }
 
-function closeModal() {
+function stopLobbyMusic() {
+    if (window.lobbyBgm) {
+        window.lobbyBgm.pause();
+        isLobbyMusicPlaying = false;
+    }
+}
+
+// ========== 彈窗管理（修復版）==========
+// 將 closeModal 改為專屬名稱 closeLobbyModal，避免與另外 6 個檔案發生命名衝突
+window.closeLobbyModal = function() {
     const modal = document.getElementById('lobby-modal');
     if (modal) {
         modal.style.display = 'none';
     }
+    
+    // 停止彈窗的音樂
+    if (window.gachaBgm) window.gachaBgm.pause();
+    if (window.shopBgm) window.shopBgm.pause();
+    
+    // 恢復大廳音樂
+    if (isLobbyMusicPlaying) {
+        startLobbyMusic();
+    }
+};
+
+function openModal(contentId) {
+    const modal = document.getElementById('lobby-modal');
+    const content = document.getElementById('lobby-modal-content');
+    if (!modal || !content) return;
+    
+    // 停止大廳音樂
+    stopLobbyMusic();
+    
+    // 停止所有彈窗音樂
+    if (window.gachaBgm) window.gachaBgm.pause();
+    if (window.shopBgm) window.shopBgm.pause();
+    
+    // 根據 contentId 產生對應內容
+    if (contentId === 'gacha') {
+        content.innerHTML = buildGachaContent();
+        if (window.gachaBgm) {
+            window.gachaBgm.currentTime = 0;
+            window.gachaBgm.play().catch(e => console.log('gacha music error'));
+        }
+    } else if (contentId === 'shop') {
+        content.innerHTML = buildShopContent();
+        if (window.shopBgm) {
+            window.shopBgm.currentTime = 0;
+            window.shopBgm.play().catch(e => console.log('shop music error'));
+        }
+    } else if (contentId === 'collection') {
+        content.innerHTML = buildCollectionContent();
+    } else if (contentId === 'wall') {
+        content.innerHTML = buildWallContent();
+    } else if (contentId === 'lessons') {
+        if (!verifyParent()) return;
+        content.innerHTML = buildLessonsContent();
+    } else if (contentId === 'report') {
+        content.innerHTML = buildReportContent();
+    } else if (contentId === 'rules') {
+        content.innerHTML = buildRulesContent();
+    }
+
+    modal.style.display = 'flex';
 }
 
 // 點擊 modal 背景也可以關閉
@@ -181,12 +243,12 @@ document.addEventListener('click', function(e) {
     const modal = document.getElementById('lobby-modal');
     if (modal && modal.style.display === 'flex') {
         if (e.target === modal) {
-            closeModal();
+            window.closeLobbyModal(); // 更新為新的關閉函數
         }
     }
 });
 
-// ========== 彈窗內容產生器 ==========
+// ========== 彈窗內容產生器（加入動畫 class）==========
 function buildGachaContent() {
     updateLobbyUI();
     return `
@@ -195,7 +257,9 @@ function buildGachaContent() {
                 <span style="color:#f39c12; font-size:24px;">🪙 ${window.gachaData.coins}</span>
                 <span style="color:#8e44ad; font-size:24px;">✨ ${window.gachaData.dust}</span>
             </div>
-            <img src="assets/Gacha.png" style="width:160px; margin:20px auto;" onerror="this.src='${FALLBACK_IMAGE}'">
+            <div style="position:relative; width:100%; display:flex; justify-content:center; margin:20px 0;">
+                <img src="assets/Gacha.png" style="width:180px; filter:drop-shadow(0 15px 25px rgba(0,0,0,0.5)); animation:breatheAnim 3s infinite;" onerror="this.src='${FALLBACK_IMAGE}'">
+            </div>
             <div style="font-size:18px; margin-bottom:20px;">每次抽取消耗 10 枚代幣</div>
             <div style="display:flex; gap:20px; justify-content:center;">
                 <button class="gacha-pull-btn" onclick="pullGachaModal(1)">抽 1 次</button>
@@ -232,6 +296,14 @@ function buildShopContent() {
     });
     if (!hasItem) html += '<div style="text-align:center; padding:40px;">寶盒空空的！先去轉蛋機解鎖貼紙吧！</div>';
     else html += '</div>';
+    
+    // 加入飄動的寶箱動畫
+    html += `
+        <div style="text-align:center; margin-top:20px;">
+            <img id="shop-magic-box" src="assets/shop_box.png" onerror="this.src='${FALLBACK_IMAGE}';" style="width:150px; filter:drop-shadow(0 10px 15px rgba(0,0,0,0.5)); animation:breatheAnim 2.5s infinite; cursor:pointer;" onclick="alert('點擊商店中的貼紙即可升級！✨')">
+            <div style="font-size:14px; color:#888; margin-top:5px;">✨ 點擊貼紙使用星塵升級 ✨</div>
+        </div>
+    `;
     return html;
 }
 
@@ -415,7 +487,7 @@ function editWallSlot(index) {
     }
 }
 
-function showStickerDetail(stickerId) {
+window.showStickerDetail = function(stickerId) {
     let s = stickerDB[stickerId];
     if (!s || !window.gachaData.collection.includes(stickerId)) return;
     let stars = window.gachaData.stars[stickerId] || 0;
@@ -436,7 +508,7 @@ function showStickerDetail(stickerId) {
             document.getElementById('detail-desc').innerText = (s.desc || "一張魔法貼紙！") + starText;
         }
     }
-}
+};
 
 function updateLessonsModal(checkbox) {
     if (checkbox.checked) {
@@ -466,12 +538,17 @@ function showLessonWordsModal(lesson) {
     let wordsHtml = words.map(w => `<span style="display:inline-block; background:white; padding:8px 15px; margin:5px; border-radius:10px; border:2px solid #a29bfe;">${w}</span>`).join('');
     modal.innerHTML = `
     <div class="modal-content" style="max-width:500px; text-align:center;">
-        <button class="close-btn" onclick="document.getElementById('word-list-modal').style.display='none'">X</button>
+        <button class="close-btn" onclick="closeWordListModal()">X</button>
         <h2>📖 ${lesson.toUpperCase()}</h2>
         <div style="display:flex; flex-wrap:wrap; justify-content:center;">${wordsHtml}</div>
-        <button class="big-btn" onclick="document.getElementById('word-list-modal').style.display='none'">關閉</button>
+        <button class="big-btn" onclick="closeWordListModal()">關閉</button>
     </div>`;
     modal.style.display = 'flex';
+}
+
+function closeWordListModal() {
+    const modal = document.getElementById('word-list-modal');
+    if (modal) modal.style.display = 'none';
 }
 
 // ========== 大廳主畫面 ==========
@@ -480,6 +557,8 @@ function openLobby() {
     const lobby = document.getElementById('gacha-lobby');
     if (lobby) lobby.style.display = 'flex';
     if (typeof bgm !== 'undefined') bgm.pause();
+    // 播放大廳音樂
+    startLobbyMusic();
 }
 
 function closeLobby() {
@@ -487,7 +566,11 @@ function closeLobby() {
     if (lobby) lobby.style.display = 'none';
     checkUnlocks();
     changeHeroSelection(0);
-    if (typeof isMusicPlaying !== 'undefined' && isMusicPlaying && typeof bgm !== 'undefined') bgm.play();
+    // 停止大廳音樂
+    stopLobbyMusic();
+    if (typeof isMusicPlaying !== 'undefined' && isMusicPlaying && typeof bgm !== 'undefined') {
+        bgm.play().catch(e => console.log('bgm resume error'));
+    }
 }
 
 // ========== 建立大廳畫面 ==========
@@ -515,9 +598,10 @@ function createLobbyUI() {
                 <button class="lobby-btn" onclick="openModal('gacha')" style="background:linear-gradient(135deg,#ffd700,#ff8c00);">🎁 轉蛋機</button>
             </div>
         </div>
+        
         <div id="lobby-modal" class="modal-overlay" style="display:none; z-index:9500;">
-            <div class="modal-content" style="max-width:95%; width:500px; padding:20px; max-height:85vh; overflow-y:auto;">
-                <button class="close-btn" onclick="closeModal()">X</button>
+            <div class="modal-content" style="max-width:95%; width:500px; padding:20px; max-height:85vh; overflow-y:auto; position: relative;">
+                <button class="close-btn" onclick="window.closeLobbyModal()" style="position: absolute; right: 15px; top: 15px; z-index: 10000; background: #ff4757; color: white; border: none; border-radius: 50%; width: 35px; height: 35px; font-weight: bold; font-size: 18px; cursor: pointer; box-shadow: 0 2px 5px rgba(0,0,0,0.3);">X</button>
                 <div id="lobby-modal-content"></div>
             </div>
         </div>
@@ -539,6 +623,10 @@ function createLobbyUI() {
             flex: 0 0 auto;
         }
         .lobby-btn:active { transform: scale(0.95); }
+        @keyframes breatheAnim {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-8px); }
+        }
         @media (max-width: 600px) {
             .lobby-btn { padding: 8px 16px; font-size: 14px; }
         }
