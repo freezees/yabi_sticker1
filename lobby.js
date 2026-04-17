@@ -1,4 +1,4 @@
-// lobby.js - 精簡彈窗版大廳 (完整修復版)
+// lobby.js - 精簡彈窗版大廳 (完整修復版 + 大視窗背景圖)
 
 const rarityFolderMap = { 'SSR': 'ssr', 'SR': 'sr', 'R': 'r', 'N': 'normal' };
 const FALLBACK_IMAGE = 'assets/meteor.png';
@@ -179,8 +179,7 @@ function stopLobbyMusic() {
     }
 }
 
-// ========== 彈窗管理（修復版）==========
-// 將 closeModal 改為專屬名稱 closeLobbyModal，避免與另外 6 個檔案發生命名衝突
+// ========== 彈窗管理 ==========
 window.closeLobbyModal = function() {
     const modal = document.getElementById('lobby-modal');
     if (modal) {
@@ -200,6 +199,8 @@ window.closeLobbyModal = function() {
 function openModal(contentId) {
     const modal = document.getElementById('lobby-modal');
     const content = document.getElementById('lobby-modal-content');
+    const modalContentBox = content.parentElement; // 取得彈窗外框的 div
+    
     if (!modal || !content) return;
     
     // 停止大廳音樂
@@ -209,14 +210,19 @@ function openModal(contentId) {
     if (window.gachaBgm) window.gachaBgm.pause();
     if (window.shopBgm) window.shopBgm.pause();
     
-    // 根據 contentId 產生對應內容
+    // 初始化預設背景（給其他一般彈窗使用）
+    modalContentBox.style.background = "rgba(255, 255, 255, 0.95)";
+    
+    // 根據 contentId 產生對應內容與套用專屬背景
     if (contentId === 'gacha') {
+        modalContentBox.style.background = "url('assets/bg_gacha.png') center/cover no-repeat";
         content.innerHTML = buildGachaContent();
         if (window.gachaBgm) {
             window.gachaBgm.currentTime = 0;
             window.gachaBgm.play().catch(e => console.log('gacha music error'));
         }
     } else if (contentId === 'shop') {
+        modalContentBox.style.background = "url('assets/bg_shop.png') center/cover no-repeat";
         content.innerHTML = buildShopContent();
         if (window.shopBgm) {
             window.shopBgm.currentTime = 0;
@@ -243,12 +249,12 @@ document.addEventListener('click', function(e) {
     const modal = document.getElementById('lobby-modal');
     if (modal && modal.style.display === 'flex') {
         if (e.target === modal) {
-            window.closeLobbyModal(); // 更新為新的關閉函數
+            window.closeLobbyModal(); 
         }
     }
 });
 
-// ========== 彈窗內容產生器（加入動畫 class）==========
+// ========== 彈窗內容產生器 ==========
 function buildGachaContent() {
     updateLobbyUI();
     return `
@@ -258,12 +264,12 @@ function buildGachaContent() {
                 <span style="color:#8e44ad; font-size:24px;">✨ ${window.gachaData.dust}</span>
             </div>
             <div style="position:relative; width:100%; display:flex; justify-content:center; margin:20px 0;">
-                <img src="assets/Gacha.png" style="width:180px; filter:drop-shadow(0 15px 25px rgba(0,0,0,0.5)); animation:breatheAnim 3s infinite;" onerror="this.src='${FALLBACK_IMAGE}'">
+                <img src="assets/Gacha.png" style="width:250px; filter:drop-shadow(0 15px 25px rgba(0,0,0,0.5)); animation:breatheAnim 3s infinite;" onerror="this.src='${FALLBACK_IMAGE}'">
             </div>
-            <div style="font-size:18px; margin-bottom:20px;">每次抽取消耗 10 枚代幣</div>
-            <div style="display:flex; gap:20px; justify-content:center;">
-                <button class="gacha-pull-btn" onclick="pullGachaModal(1)">抽 1 次</button>
-                <button class="gacha-pull-btn" onclick="pullGachaModal(5)">抽 5 次</button>
+            <div style="font-size:20px; font-weight:bold; color:white; text-shadow: 0 2px 4px rgba(0,0,0,0.8); margin-bottom:20px; background:rgba(0,0,0,0.4); display:inline-block; padding:5px 15px; border-radius:20px;">每次抽取消耗 10 枚代幣</div>
+            <div style="display:flex; gap:20px; justify-content:center; margin-top:20px;">
+                <button class="gacha-pull-btn" style="padding:15px 30px; font-size:20px;" onclick="pullGachaModal(1)">抽 1 次</button>
+                <button class="gacha-pull-btn" style="padding:15px 30px; font-size:20px;" onclick="pullGachaModal(5)">抽 5 次</button>
             </div>
         </div>
     `;
@@ -271,8 +277,9 @@ function buildGachaContent() {
 
 function buildShopContent() {
     updateLobbyUI();
-    let html = `<div style="text-align:center; margin-bottom:15px;"><span style="background:rgba(0,0,0,0.7); padding:8px 20px; border-radius:30px; font-size:22px;">✨ 星塵：${window.gachaData.dust}</span></div>`;
-    html += '<div class="sticker-grid" style="max-height:450px; overflow-y:auto;">';
+    let html = `<div style="text-align:center; margin-bottom:15px;"><span style="background:rgba(0,0,0,0.7); padding:8px 20px; border-radius:30px; font-size:22px; color:white;">✨ 星塵：${window.gachaData.dust}</span></div>`;
+    // 改為動態高度適應大螢幕
+    html += '<div class="sticker-grid" style="height:calc(90vh - 280px); overflow-y:auto; padding:10px;">';
     let shopPriceMap = { 'N': 3, 'R': 9, 'SR': 15, 'SSR': 30 };
     let hasItem = false;
 
@@ -290,18 +297,17 @@ function buildShopContent() {
                 <img src="${assets.img}" onerror="this.src='${FALLBACK_IMAGE}'">
                 ${stars > 0 ? `<div class="card-stars">${'⭐'.repeat(stars)}</div>` : ''}
                 <div class="rarity-badge badge-${s.rarity}">${s.rarity}</div>
-                ${!isMaxed ? `<div style="position:absolute; bottom:5px; left:50%; transform:translateX(-50%); background:white; padding:2px 8px; border-radius:10px; font-size:13px;">✨ ${price}</div>` : '<div style="position:absolute; bottom:5px; left:50%; transform:translateX(-50%); background:rgba(0,0,0,0.7); color:white; padding:2px 8px; border-radius:10px; font-size:11px;">已滿星</div>'}
+                ${!isMaxed ? `<div style="position:absolute; bottom:5px; left:50%; transform:translateX(-50%); background:white; padding:2px 8px; border-radius:10px; font-size:13px; color:black;">✨ ${price}</div>` : '<div style="position:absolute; bottom:5px; left:50%; transform:translateX(-50%); background:rgba(0,0,0,0.8); color:white; padding:2px 8px; border-radius:10px; font-size:11px;">已滿星</div>'}
             </div>
         `;
     });
-    if (!hasItem) html += '<div style="text-align:center; padding:40px;">寶盒空空的！先去轉蛋機解鎖貼紙吧！</div>';
+    if (!hasItem) html += '<div style="text-align:center; padding:40px; color:white; font-size:20px; text-shadow: 0 2px 4px rgba(0,0,0,0.8);">寶盒空空的！先去轉蛋機解鎖貼紙吧！</div>';
     else html += '</div>';
     
-    // 加入飄動的寶箱動畫
     html += `
         <div style="text-align:center; margin-top:20px;">
-            <img id="shop-magic-box" src="assets/shop_box.png" onerror="this.src='${FALLBACK_IMAGE}';" style="width:150px; filter:drop-shadow(0 10px 15px rgba(0,0,0,0.5)); animation:breatheAnim 2.5s infinite; cursor:pointer;" onclick="alert('點擊商店中的貼紙即可升級！✨')">
-            <div style="font-size:14px; color:#888; margin-top:5px;">✨ 點擊貼紙使用星塵升級 ✨</div>
+            <img id="shop-magic-box" src="assets/shop_box.png" onerror="this.src='${FALLBACK_IMAGE}';" style="width:120px; filter:drop-shadow(0 10px 15px rgba(0,0,0,0.5)); animation:breatheAnim 2.5s infinite; cursor:pointer;" onclick="alert('點擊商店中的貼紙即可升級！✨')">
+            <div style="font-size:16px; color:white; text-shadow: 0 2px 4px rgba(0,0,0,0.8); margin-top:5px; font-weight:bold;">✨ 點擊貼紙使用星塵升級 ✨</div>
         </div>
     `;
     return html;
@@ -310,8 +316,9 @@ function buildShopContent() {
 function buildCollectionContent() {
     updateLobbyUI();
     let owned = window.gachaData.collection.filter(id => enabledStickers.includes(id)).length;
-    let html = `<div style="text-align:center; margin-bottom:15px; font-weight:bold;">進度：${owned} / ${enabledStickers.length}</div>`;
-    html += '<div class="sticker-grid" style="max-height:500px; overflow-y:auto;">';
+    let html = `<div style="text-align:center; margin-bottom:15px; font-weight:bold; font-size:22px;">收集進度：${owned} / ${enabledStickers.length}</div>`;
+    // 改為動態高度適應大螢幕
+    html += '<div class="sticker-grid" style="height:calc(90vh - 150px); overflow-y:auto; padding:10px;">';
     stickerDB.forEach(s => {
         if (!enabledStickers.includes(s.id)) return;
         let isOwned = window.gachaData.collection.includes(s.id);
@@ -330,14 +337,14 @@ function buildCollectionContent() {
 }
 
 function buildWallContent() {
-    let html = '<div class="wall-grid" style="flex-wrap:wrap; justify-content:center;">';
+    let html = '<div class="wall-grid" style="flex-wrap:wrap; justify-content:center; gap:20px;">';
     window.gachaData.wall.forEach((slotId, index) => {
         if (slotId !== null && enabledStickers.includes(slotId)) {
             let s = stickerDB[slotId];
             let assets = getStickerAssets(s);
-            html += `<div class="wall-slot rarity-${s.rarity}" onclick="editWallSlot(${index})"><img src="${assets.img}" onerror="this.src='${FALLBACK_IMAGE}'"></div>`;
+            html += `<div class="wall-slot rarity-${s.rarity}" style="width:120px; height:120px;" onclick="editWallSlot(${index})"><img src="${assets.img}" style="width:80%;" onerror="this.src='${FALLBACK_IMAGE}'"></div>`;
         } else {
-            html += `<div class="wall-slot" onclick="editWallSlot(${index})"><div style="font-size:40px;">+</div></div>`;
+            html += `<div class="wall-slot" style="width:120px; height:120px;" onclick="editWallSlot(${index})"><div style="font-size:50px; color:#aaa;">+</div></div>`;
         }
     });
     html += '</div>';
@@ -345,18 +352,18 @@ function buildWallContent() {
 }
 
 function buildLessonsContent() {
-    let html = '<div style="font-size:20px; font-weight:bold; text-align:center; margin-bottom:15px;">📖 選擇單字庫</div>';
-    html += '<div style="display:flex; flex-direction:column; gap:10px;">';
+    let html = '<div style="font-size:24px; font-weight:bold; text-align:center; margin-bottom:20px;">📖 選擇單字庫</div>';
+    html += '<div style="display:flex; flex-direction:column; gap:12px; height:calc(90vh - 150px); overflow-y:auto; padding:10px;">';
     Object.keys(lessonData).forEach(lesson => {
         let isChecked = activeLessons.includes(lesson) ? "checked" : "";
         html += `
-            <div style="display:flex; align-items:center; gap:15px; background:rgba(255,255,255,0.9); padding:10px 20px; border-radius:15px; border:3px solid #ffb6c1;">
-                <input type="checkbox" value="${lesson}" ${isChecked} onchange="updateLessonsModal(this)" style="width:25px; height:25px; cursor:pointer;">
+            <div style="display:flex; align-items:center; gap:15px; background:rgba(255,255,255,0.9); padding:15px 25px; border-radius:15px; border:3px solid #ffb6c1;">
+                <input type="checkbox" value="${lesson}" ${isChecked} onchange="updateLessonsModal(this)" style="width:30px; height:30px; cursor:pointer;">
                 <div onclick="showLessonWordsModal('${lesson}')" style="cursor:pointer; flex-grow:1;">
-                    <span style="font-weight:bold; font-size:20px;">${lesson.toUpperCase()}</span>
-                    <span style="color:#666; font-size:14px;">(${lessonData[lesson].length} 字)</span>
+                    <span style="font-weight:bold; font-size:22px;">${lesson.toUpperCase()}</span>
+                    <span style="color:#666; font-size:16px;">(${lessonData[lesson].length} 字)</span>
                 </div>
-                <span style="font-size:24px;">🔍</span>
+                <span style="font-size:28px;">🔍</span>
             </div>
         `;
     });
@@ -372,12 +379,14 @@ function buildReportContent() {
         return { word: w, s: log[w].success, f: log[w].fail, p: pct };
     });
     arr.sort((a, b) => b.f - a.f);
-    if (arr.length === 0) return '<div style="text-align:center; padding:40px;">暫無戰鬥紀錄</div>';
-    let html = '<div style="max-height:450px; overflow-y:auto;"><table style="width:100%; text-align:center; border-collapse:collapse;">';
+    if (arr.length === 0) return '<div style="text-align:center; padding:40px; font-size:20px;">暫無戰鬥紀錄</div>';
+    
+    // 改為動態高度適應大螢幕
+    let html = '<div style="height:calc(90vh - 100px); overflow-y:auto; padding:10px;"><table style="width:100%; text-align:center; border-collapse:collapse; font-size:18px;">';
     html += '<tr style="background:#ffb6c1;"><th>單字</th><th>✅</th><th>❌</th><th>錯誤率</th></tr>';
     arr.slice(0, 30).forEach(item => {
         let errColor = item.p >= 50 ? '#e74c3c' : '#555';
-        html += `<tr style="border-bottom:1px solid #ffe6f0;"><td style="padding:8px; font-weight:bold;">${item.word}</td><td style="color:#2ecc71;">${item.s}</td><td style="color:${errColor};">${item.f}</td><td style="color:${errColor};">${item.p}%</td></tr>`;
+        html += `<tr style="border-bottom:1px solid #ffe6f0;"><td style="padding:12px; font-weight:bold;">${item.word}</td><td style="color:#2ecc71;">${item.s}</td><td style="color:${errColor};">${item.f}</td><td style="color:${errColor}; font-weight:bold;">${item.p}%</td></tr>`;
     });
     html += '</table></div>';
     return html;
@@ -385,9 +394,9 @@ function buildReportContent() {
 
 function buildRulesContent() {
     return `
-        <h2 style="text-align:center;">📜 遊戲規則</h2>
-        <div style="text-align:center; color:#e74c3c;">基礎爆擊率：5% (爆擊傷害 2 倍)</div>
-        <ul style="line-height:1.8; background:#f9f9f9; padding:15px 25px; border-radius:10px;">
+        <h2 style="text-align:center; font-size:26px;">📜 遊戲規則</h2>
+        <div style="text-align:center; color:#e74c3c; font-size:18px; margin-bottom:15px;">基礎爆擊率：5% (爆擊傷害 2 倍)</div>
+        <ul style="line-height:2; background:#f9f9f9; padding:20px 30px; border-radius:15px; font-size:18px;">
             <li>🌈 彩色(SSR)：每張 +1 血量💖，滿星解鎖招式四</li>
             <li>🟪 紫色(SR)：每張 +1% 爆擊率💥，滿星再 +1%</li>
             <li>🟨 金色(R)：每 5 張 +1 提示🪄，滿星再 +1</li>
@@ -430,11 +439,11 @@ function pullGachaModal(times) {
     localStorage.setItem('gachaSystemV5', JSON.stringify(window.gachaData));
     updateLobbyUI();
 
-    let resultHtml = '<div style="display:flex; flex-wrap:wrap; justify-content:center; gap:12px; margin-bottom:20px;">';
+    let resultHtml = '<div style="display:flex; flex-wrap:wrap; justify-content:center; gap:15px; margin-bottom:20px;">';
     results.forEach(res => {
         let assets = getStickerAssets(res);
         let glowClass = res.rarity === 'SSR' ? 'ssr-glow' : (res.rarity === 'SR' ? 'sr-glow' : (res.rarity === 'R' ? 'r-glow' : ''));
-        resultHtml += `<div class="sticker-card rarity-${res.rarity}" style="width:85px; height:85px;">
+        resultHtml += `<div class="sticker-card rarity-${res.rarity}" style="width:100px; height:100px;">
             <div class="sticker-id">${getStickerDisplayId(res)}</div>
             <img src="${assets.img}" class="${glowClass}" style="width:70%;">
             <div class="rarity-badge badge-${res.rarity}">${res.rarity}</div>
@@ -442,7 +451,15 @@ function pullGachaModal(times) {
     });
     resultHtml += '</div>';
     let msg = `抽到 ${times} 張貼紙！${gotStar ? '⭐ 星級提升！' : ''}${totalDust > 0 ? `✨ 獲得 ${totalDust} 星塵` : ''}`;
-    document.getElementById('lobby-modal-content').innerHTML = `<div style="text-align:center;">${resultHtml}<div style="font-size:18px;">${msg}</div><button class="big-btn" style="margin-top:20px;" onclick="refreshGachaModal()">確認</button></div>`;
+    
+    // 開獎畫面套用黑色半透明遮罩讓文字清楚
+    document.getElementById('lobby-modal-content').innerHTML = `
+        <div style="text-align:center; background:rgba(0,0,0,0.6); padding:20px; border-radius:20px;">
+            ${resultHtml}
+            <div style="font-size:22px; color:white; font-weight:bold;">${msg}</div>
+            <button class="big-btn" style="margin-top:20px; font-size:20px; padding:15px 40px;" onclick="refreshGachaModal()">確認</button>
+        </div>
+    `;
 }
 
 function refreshGachaModal() {
@@ -535,13 +552,13 @@ function showLessonWordsModal(lesson) {
         modal.style.zIndex = '9700';
         document.body.appendChild(modal);
     }
-    let wordsHtml = words.map(w => `<span style="display:inline-block; background:white; padding:8px 15px; margin:5px; border-radius:10px; border:2px solid #a29bfe;">${w}</span>`).join('');
+    let wordsHtml = words.map(w => `<span style="display:inline-block; background:white; padding:10px 18px; margin:5px; border-radius:12px; border:2px solid #a29bfe; font-size:18px;">${w}</span>`).join('');
     modal.innerHTML = `
-    <div class="modal-content" style="max-width:500px; text-align:center;">
+    <div class="modal-content" style="max-width:600px; width:90%; height:80vh; overflow-y:auto; text-align:center;">
         <button class="close-btn" onclick="closeWordListModal()">X</button>
-        <h2>📖 ${lesson.toUpperCase()}</h2>
+        <h2 style="font-size:26px;">📖 ${lesson.toUpperCase()}</h2>
         <div style="display:flex; flex-wrap:wrap; justify-content:center;">${wordsHtml}</div>
-        <button class="big-btn" onclick="closeWordListModal()">關閉</button>
+        <button class="big-btn" style="margin-top:20px;" onclick="closeWordListModal()">關閉</button>
     </div>`;
     modal.style.display = 'flex';
 }
@@ -586,8 +603,8 @@ function createLobbyUI() {
                 </div>
                 <button class="close-btn" onclick="closeLobby()" style="position:relative;">X</button>
             </div>
-            <div id="buff-panel" style="background:rgba(255,255,255,0.9); padding:12px; border-radius:15px; margin-bottom:20px; text-align:center; font-weight:bold;"></div>
-            <div style="display:flex; flex-wrap:wrap; justify-content:center; gap:12px;">
+            <div id="buff-panel" style="background:rgba(255,255,255,0.9); padding:12px; border-radius:15px; margin-bottom:20px; text-align:center; font-weight:bold; font-size:18px;"></div>
+            <div style="display:flex; flex-wrap:wrap; justify-content:center; gap:15px;">
                 <button class="lobby-btn" onclick="openPoolEditor()" style="background:#e74c3c;">⚙️ 開放設定</button>
                 <button class="lobby-btn" onclick="openModal('rules')" style="background:#fff9c4; color:#d35400;">📜 規則</button>
                 <button class="lobby-btn" onclick="openModal('shop')" style="background:#a29bfe;">🏪 商店</button>
@@ -600,9 +617,9 @@ function createLobbyUI() {
         </div>
         
         <div id="lobby-modal" class="modal-overlay" style="display:none; z-index:9500;">
-            <div class="modal-content" style="max-width:95%; width:500px; padding:20px; max-height:85vh; overflow-y:auto; position: relative;">
-                <button class="close-btn" onclick="window.closeLobbyModal()" style="position: absolute; right: 15px; top: 15px; z-index: 10000; background: #ff4757; color: white; border: none; border-radius: 50%; width: 35px; height: 35px; font-weight: bold; font-size: 18px; cursor: pointer; box-shadow: 0 2px 5px rgba(0,0,0,0.3);">X</button>
-                <div id="lobby-modal-content"></div>
+            <div class="modal-content" style="width:95%; max-width:800px; height:90vh; padding:20px; overflow-y:hidden; position:relative; background:rgba(255,255,255,0.95); border-radius:20px; box-shadow:0 10px 30px rgba(0,0,0,0.5);">
+                <button class="close-btn" onclick="window.closeLobbyModal()" style="position:absolute; right:15px; top:15px; z-index:10000; background:#ff4757; color:white; border:none; border-radius:50%; width:40px; height:40px; font-weight:bold; font-size:22px; cursor:pointer; box-shadow:0 2px 5px rgba(0,0,0,0.3);">X</button>
+                <div id="lobby-modal-content" style="height:100%; overflow-y:auto; padding-top:10px;"></div>
             </div>
         </div>
     `);
@@ -611,8 +628,8 @@ function createLobbyUI() {
     const style = document.createElement('style');
     style.textContent = `
         .lobby-btn {
-            padding: 12px 20px;
-            font-size: 18px;
+            padding: 15px 25px;
+            font-size: 20px;
             font-weight: bold;
             border: none;
             border-radius: 40px;
@@ -628,7 +645,7 @@ function createLobbyUI() {
             50% { transform: translateY(-8px); }
         }
         @media (max-width: 600px) {
-            .lobby-btn { padding: 8px 16px; font-size: 14px; }
+            .lobby-btn { padding: 12px 20px; font-size: 16px; }
         }
     `;
     document.head.appendChild(style);

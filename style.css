@@ -357,7 +357,24 @@ h1 { color: #ffffff; font-size: 28px; margin: 40px 0 15px 0; user-select: none; 
 .lobby-content.active { display: flex; flex-direction: column; align-items: center; }
 
 .sticker-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(90px, 1fr)); gap: 12px; width: 100%; }
-.sticker-card { aspect-ratio: 1; background: #fff; border-radius: 12px; display: flex; align-items: center; justify-content: center; position: relative; cursor: pointer; transition: 0.3s; overflow: hidden; flex-direction: column; }
+
+/* 修改：移除 aspect-ratio，改用 padding 撐開高度，並加上 margin-bottom 防止重疊 */
+.sticker-card { 
+    background: #fff; 
+    border-radius: 12px; 
+    display: flex; 
+    align-items: center; 
+    justify-content: center; 
+    position: relative; 
+    cursor: pointer; 
+    transition: 0.3s; 
+    overflow: hidden; 
+    flex-direction: column; 
+    padding: 15px 5px 25px 5px; /* 上、左、下、右的內距，下方留空間給星星和標籤 */
+    margin-bottom: 10px; /* 確保每排下方有間距 */
+    min-height: 110px; /* 確保最小高度 */
+}
+
 .sticker-card:hover { transform: scale(1.05); }
 .sticker-card img { width: 85%; max-height: 85%; object-fit: contain; }
 .sticker-id { position: absolute; top: 4px; left: 4px; font-size: 11px; font-weight: bold; background: rgba(255,255,255,0.9); padding: 2px 6px; border-radius: 6px; z-index: 5; }
@@ -545,11 +562,15 @@ h1 { color: #ffffff; font-size: 28px; margin: 40px 0 15px 0; user-select: none; 
 }
 
 /* 彈窗內貼紙網格 */
+/* 彈窗內貼紙網格 */
 .sticker-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(85px, 1fr));
-    gap: 10px;
+    /* 讓最小寬度稍微變大，避免卡片太窄 */
+    grid-template-columns: repeat(auto-fill, minmax(100px, 1fr)); 
+    gap: 20px; /* 加大卡片之間的間距 (原本是 10px) */
     width: 100%;
+    padding: 10px; /* 外圍留一點呼吸空間 */
+    box-sizing: border-box; /* 確保 padding 不會讓寬度爆掉 */
 }
 
 .wall-grid {
