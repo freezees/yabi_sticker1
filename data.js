@@ -33,19 +33,62 @@ function buildCurrentWordList() {
 }
 buildCurrentWordList();
 
-// 英雄資料
+// 英雄資料 (★ 新增寵物路徑 petImg 與被動技能說明 passiveDesc)
 const heroes = [
-    { folder: 'hero1', name: '艾德恩', title: '晨曦之劍騎士', feature: '代表勇氣與守護', skills: ["突進斬擊", "三連幻影斬", "金色神雷：巨劍天降", "神聖守護 (🌟五星解鎖)"], baseHp: 8, baseHints: 1, baseDmg: [1, 2, 3], anims: ["atk-dash", "atk-glow", "atk-glow"], magicImg: "assets/meteor.png", magicAnim: "meteor-anim" },
-    { folder: 'hero2', name: '米拉', title: '潮汐星願仙子', feature: '代表海洋與夢想', skills: ["泡沫星砂彈", "珊瑚星曜海嘯", "深海巨鯨之歌", "海洋復甦 (🌟五星解鎖)"], baseHp: 4, baseHints: 3, baseDmg: [2, 2, 3], anims: ["atk-dash", "atk-spin", "atk-glow"], magicImg: "assets/meteor.png", magicAnim: "meteor-anim", magicAudio: "hero2/whale_ult.mp3" },
-    { folder: 'hero3', name: '莉莉安', title: '幻月百合祭司', feature: '代表純潔與智慧', skills: ["閃光一擊", "極光跳躍", "天降恆星", "光之祝福 (🌟五星解鎖)"], baseHp: 5, baseHints: 3, baseDmg: [1, 2, 3], anims: ["atk-dash", "atk-jump", "atk-glow"], magicImg: "assets/meteor.png", magicAnim: "meteor-anim" },
-    { folder: 'hero4', name: '諾娃', title: '璀璨銀河精靈', feature: '代表希望與驚喜', skills: ["冰凌突刺", "寒冰迴旋", "星星光波", "星辰爆發 (🌟五星解鎖)"], baseHp: 5, baseHints: 3, baseDmg: [1, 2, 3], anims: ["atk-dash", "atk-spin", "atk-glow"], magicImg: "hero4/star_wave.png", magicAnim: "custom", magicAudio: "hero4/wave.mp3" },
-    { folder: 'hero5', name: '黛米', title: '金色豐饒使者', feature: '代表大自然與慷慨', skills: ["飛花葉刃", "狂野藤蔓", "金色麥浪大豐收", "豐收盛宴 (🌟五星解鎖)"], baseHp: 5, baseHints: 3, baseDmg: [1, 2, 3], anims: ["atk-dash", "atk-jump", "atk-glow"], magicImg: "hero5/wheat_wave.png", magicAnim: "custom-nature", magicAudio: "hero5/nature_ult.mp3" }
+    { 
+        folder: 'hero1', name: '艾德恩', title: '晨曦之劍騎士', feature: '代表勇氣與守護', 
+        skills: ["突進斬擊", "三連幻影斬", "金色神雷：巨劍天降", "神聖守護 (🌟五星解鎖)"], 
+        passiveDesc: "【被動：神聖守護】在危急時刻有機率觸發聖光護盾，抵擋魔龍的致命一擊！",
+        petImg: "hero1/pet.png", // 艾德恩的寵物
+        baseHp: 8, baseHints: 1, baseDmg: [1, 2, 3], 
+        anims: ["atk-dash", "atk-glow", "atk-glow"], magicImg: "assets/meteor.png", magicAnim: "meteor-anim" 
+    },
+    { 
+        folder: 'hero2', name: '米拉', title: '潮汐星願仙子', feature: '代表海洋與夢想', 
+        skills: ["泡沫星砂彈", "珊瑚星曜海嘯", "深海巨鯨之歌", "海洋復甦 (🌟五星解鎖)"], 
+        passiveDesc: "【被動：海洋復甦】進入第二關時，若拼錯單字，米拉的魔法會自動發動並提示正確字母！",
+        petImg: "hero2/pet.png", // 米拉的寵物
+        baseHp: 4, baseHints: 3, baseDmg: [2, 2, 3], 
+        anims: ["atk-dash", "atk-spin", "atk-glow"], magicImg: "assets/meteor.png", magicAnim: "meteor-anim", magicAudio: "hero2/whale_ult.mp3" 
+    },
+    { 
+        folder: 'hero3', name: '莉莉安', title: '幻月百合祭司', feature: '代表純潔與智慧', 
+        skills: ["閃光一擊", "極光跳躍", "天降恆星", "光之祝福 (🌟五星解鎖)"], 
+        passiveDesc: "【被動：光之祝福】每次發動攻擊時，都有微小機率祈求星光回復生命值！",
+        petImg: "hero3/pet.png", // 莉莉安的寵物
+        baseHp: 5, baseHints: 3, baseDmg: [1, 2, 3], 
+        anims: ["atk-dash", "atk-jump", "atk-glow"], magicImg: "assets/meteor.png", magicAnim: "meteor-anim" 
+    },
+    { 
+        folder: 'hero4', name: '諾娃', title: '璀璨銀河精靈', feature: '代表希望與驚喜', 
+        skills: ["冰凌突刺", "寒冰迴旋", "星星光波", "星辰爆發 (🌟五星解鎖)"], 
+        passiveDesc: "【被動：星辰爆發】魔法爆擊時，造成的傷害會額外提升，並伴隨絢麗星光！",
+        petImg: "hero4/pet.png", // 諾娃的寵物
+        baseHp: 5, baseHints: 3, baseDmg: [1, 2, 3], 
+        anims: ["atk-dash", "atk-spin", "atk-glow"], magicImg: "hero4/star_wave.png", magicAnim: "custom", magicAudio: "hero4/wave.mp3" 
+    },
+    { 
+        folder: 'hero5', name: '黛米', title: '金色豐饒使者', feature: '代表大自然與慷慨', 
+        skills: ["飛花葉刃", "狂野藤蔓", "金色麥浪大豐收", "豐收盛宴 (🌟五星解鎖)"], 
+        passiveDesc: "【被動：豐收盛宴】戰鬥結束獲得寶箱時，有額外機率讓掉落的金幣翻倍！",
+        petImg: "hero5/pet.png", // 黛米的寵物
+        baseHp: 5, baseHints: 3, baseDmg: [1, 2, 3], 
+        anims: ["atk-dash", "atk-jump", "atk-glow"], magicImg: "hero5/wheat_wave.png", magicAnim: "custom-nature", magicAudio: "hero5/nature_ult.mp3" 
+    }
 ];
-for(let i=6; i<=10; i++) heroes.push({ folder: `hero${i}`, name: `神祕英雄 ${i}`, title: '沉睡中的力量', feature: '等待喚醒中...', skills: ["招式 1", "招式 2", "招式 3", "未知覺醒技"], baseHp: 5, baseHints: 3, baseDmg: [1, 2, 3], anims: ["atk-dash", "atk-glow", "atk-glow"], magicImg: "assets/meteor.png", magicAnim: "meteor-anim" });
+for(let i=6; i<=10; i++) {
+    heroes.push({ 
+        folder: `hero${i}`, name: `神祕英雄 ${i}`, title: '沉睡中的力量', feature: '等待喚醒中...', 
+        skills: ["招式 1", "招式 2", "招式 3", "未知覺醒技"], 
+        passiveDesc: "【未知被動】目前英雄仍在沉睡，等待覺醒中...",
+        petImg: `hero${i}/pet.png`,
+        baseHp: 5, baseHints: 3, baseDmg: [1, 2, 3], 
+        anims: ["atk-dash", "atk-glow", "atk-glow"], magicImg: "assets/meteor.png", magicAnim: "meteor-anim" 
+    });
+}
 
 let selectedHeroIdx = 0;
 
-// ★ 動態擴充版：使用「稀有度 + 編號」來綁定故事，不怕被擠掉！
 // ★ 動態擴充版：使用「稀有度 + 編號」來綁定故事
 const customStickers = {
     // === SR 系列 (紫色神話) ===

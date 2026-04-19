@@ -1,4 +1,4 @@
-// lobby.js - 精簡彈窗版大廳 (完整修復版 + 大視窗背景圖)
+// lobby.js - 精簡彈窗版大廳 (完整修復版 + 大視窗背景圖 + 寵物與數值面板系統)
 
 const rarityFolderMap = { 'SSR': 'ssr', 'SR': 'sr', 'R': 'r', 'N': 'normal' };
 const FALLBACK_IMAGE = 'assets/meteor.png';
@@ -48,19 +48,65 @@ function changeHeroSelection(dir) {
     const h = heroes[selectedHeroIdx];
     if (!h) return;
 
+    // 取得目前星數與判斷被動是否解鎖
+    let stars = window.gachaData.stars[selectedHeroIdx] || 0;
+    let isPassiveUnlocked = stars >= 5;
+
     let preview = document.getElementById('selected-char-preview');
     if (preview) {
         preview.src = `${h.folder}/hero.png`;
         preview.onerror = function () { this.src = FALLBACK_IMAGE; };
         if (h.unlocked && selectedHeroIdx < 10) preview.classList.add('ssr-glow');
         else preview.classList.remove('ssr-glow');
+
+        // ★ 更新：寵物放置於腳邊
+        let petImg = document.getElementById('pet-preview');
+        if (!petImg) {
+            petImg = document.createElement('img');
+            petImg.id = 'pet-preview';
+            petImg.style.position = 'absolute';
+            petImg.style.bottom = '0px'; // 貼齊腳底
+            petImg.style.right = '5%';   // 放置於右側腳邊
+            petImg.style.width = '100px'; 
+            petImg.style.filter = 'drop-shadow(0 5px 10px rgba(0,0,0,0.5))';
+            petImg.style.animation = 'breatheAnim 2s infinite'; 
+            petImg.style.pointerEvents = 'none';
+            petImg.style.zIndex = '10';
+            
+            if (window.getComputedStyle(preview.parentElement).position === 'static') {
+                preview.parentElement.style.position = 'relative';
+            }
+            preview.parentElement.appendChild(petImg);
+        }
+
+        if (h.unlocked && isPassiveUnlocked && h.petImg) {
+            petImg.src = h.petImg;
+            petImg.style.display = 'block';
+        } else {
+            petImg.style.display = 'none';
+        }
     }
 
     const status = document.getElementById('char-status-text');
     const startBtn = document.getElementById('central-start-btn');
     if (h.unlocked) {
         if (preview) preview.classList.remove('char-locked');
-        if (status) status.innerHTML = `<div style="color:#ff1493; font-size:24px; font-weight:900;">${h.name}</div><div style="color:#f06292; font-size:16px;">⚔️ ${h.title}</div>`;
+        if (status) {
+            status.innerHTML = `
+                <div style="color:#ff1493; font-size:26px; font-weight:900;">${h.name}</div>
+                <div style="color:#f06292; font-size:16px; margin-bottom:8px;">⚔️ ${h.title}</div>
+                
+                <div style="background: rgba(255,255,255,0.9); border: 2px solid #ffb6c1; border-radius: 12px; padding: 10px; font-size: 15px; text-align: left; display: inline-block; color: #333; box-shadow: 0 4px 6px rgba(0,0,0,0.1); width: 100%; max-width: 320px;">
+                    <div style="display: flex; gap: 15px; justify-content: center; margin-bottom: 5px;">
+                        <span>💖 生命: <b style="color:#e74c3c; font-size:18px;">${h.baseHp}</b></span>
+                        <span>🪄 提示: <b style="color:#3498db; font-size:18px;">${h.baseHints}</b></span>
+                    </div>
+                    <div style="background: ${isPassiveUnlocked ? '#fdf2e9' : '#f4f6f7'}; padding: 8px 10px; border-radius: 8px; font-size: 13px; color: ${isPassiveUnlocked ? '#8e44ad' : '#7f8c8d'}; text-align: center; font-weight: bold; border: 1px dashed ${isPassiveUnlocked ? '#8e44ad' : '#bdc3c7'}; line-height: 1.4;">
+                        ${isPassiveUnlocked ? h.passiveDesc : '🔒 第四招被動 (滿五星解鎖，並召喚專屬寵物)'}
+                    </div>
+                </div>
+            `;
+        }
         if (startBtn) startBtn.style.display = "block";
     } else {
         if (preview) preview.classList.add('char-locked');
@@ -199,21 +245,17 @@ window.closeLobbyModal = function() {
 function openModal(contentId) {
     const modal = document.getElementById('lobby-modal');
     const content = document.getElementById('lobby-modal-content');
-    const modalContentBox = content.parentElement; // 取得彈窗外框的 div
+    const modalContentBox = content.parentElement;
     
     if (!modal || !content) return;
     
-    // 停止大廳音樂
     stopLobbyMusic();
     
-    // 停止所有彈窗音樂
     if (window.gachaBgm) window.gachaBgm.pause();
     if (window.shopBgm) window.shopBgm.pause();
     
-    // 初始化預設背景（給其他一般彈窗使用）
     modalContentBox.style.background = "rgba(255, 255, 255, 0.95)";
     
-    // 根據 contentId 產生對應內容與套用專屬背景
     if (contentId === 'gacha') {
         modalContentBox.style.background = "url('assets/bg_gacha.png') center/cover no-repeat";
         content.innerHTML = buildGachaContent();
@@ -244,7 +286,6 @@ function openModal(contentId) {
     modal.style.display = 'flex';
 }
 
-// 點擊 modal 背景也可以關閉
 document.addEventListener('click', function(e) {
     const modal = document.getElementById('lobby-modal');
     if (modal && modal.style.display === 'flex') {
@@ -278,7 +319,6 @@ function buildGachaContent() {
 function buildShopContent() {
     updateLobbyUI();
     let html = `<div style="text-align:center; margin-bottom:15px;"><span style="background:rgba(0,0,0,0.7); padding:8px 20px; border-radius:30px; font-size:22px; color:white;">✨ 星塵：${window.gachaData.dust}</span></div>`;
-    // 改為動態高度適應大螢幕
     html += '<div class="sticker-grid" style="height:calc(90vh - 280px); overflow-y:auto; padding:10px;">';
     let shopPriceMap = { 'N': 3, 'R': 9, 'SR': 15, 'SSR': 30 };
     let hasItem = false;
@@ -317,7 +357,6 @@ function buildCollectionContent() {
     updateLobbyUI();
     let owned = window.gachaData.collection.filter(id => enabledStickers.includes(id)).length;
     let html = `<div style="text-align:center; margin-bottom:15px; font-weight:bold; font-size:22px;">收集進度：${owned} / ${enabledStickers.length}</div>`;
-    // 改為動態高度適應大螢幕
     html += '<div class="sticker-grid" style="height:calc(90vh - 150px); overflow-y:auto; padding:10px;">';
     stickerDB.forEach(s => {
         if (!enabledStickers.includes(s.id)) return;
@@ -381,7 +420,6 @@ function buildReportContent() {
     arr.sort((a, b) => b.f - a.f);
     if (arr.length === 0) return '<div style="text-align:center; padding:40px; font-size:20px;">暫無戰鬥紀錄</div>';
     
-    // 改為動態高度適應大螢幕
     let html = '<div style="height:calc(90vh - 100px); overflow-y:auto; padding:10px;"><table style="width:100%; text-align:center; border-collapse:collapse; font-size:18px;">';
     html += '<tr style="background:#ffb6c1;"><th>單字</th><th>✅</th><th>❌</th><th>錯誤率</th></tr>';
     arr.slice(0, 30).forEach(item => {
@@ -452,7 +490,6 @@ function pullGachaModal(times) {
     resultHtml += '</div>';
     let msg = `抽到 ${times} 張貼紙！${gotStar ? '⭐ 星級提升！' : ''}${totalDust > 0 ? `✨ 獲得 ${totalDust} 星塵` : ''}`;
     
-    // 開獎畫面套用黑色半透明遮罩讓文字清楚
     document.getElementById('lobby-modal-content').innerHTML = `
         <div style="text-align:center; background:rgba(0,0,0,0.6); padding:20px; border-radius:20px;">
             ${resultHtml}
@@ -504,6 +541,7 @@ function editWallSlot(index) {
     }
 }
 
+// ★ 更新：取消陣列顯示，改為在招式後面標註攻擊力
 window.showStickerDetail = function(stickerId) {
     let s = stickerDB[stickerId];
     if (!s || !window.gachaData.collection.includes(stickerId)) return;
@@ -514,12 +552,14 @@ window.showStickerDetail = function(stickerId) {
     if (modal) {
         modal.style.display = 'flex';
         document.getElementById('detail-img').src = assets.img;
-        let starText = `\n\n⭐ 星級：${stars}/5${stars >= 5 ? ' (已解鎖專屬短片！)' : ''}`;
+        let starText = `\n\n⭐ 星級：${stars}/5${stars >= 5 ? ' (已解鎖專屬寵物與招式！)' : ''}`;
         if (matchedHero) {
             let is5Star = stars >= 5;
-            let s4Text = is5Star ? `4. ${matchedHero.skills[3]} (🌟五星解鎖)` : `4. 🔒 (滿五星解鎖)`;
+            let s4Text = is5Star ? `4. 被動：${matchedHero.passiveDesc}` : `4. 🔒 招式四被動 (滿五星解鎖)`;
             document.getElementById('detail-title').innerText = `${matchedHero.name} - ${matchedHero.title}`;
-            document.getElementById('detail-desc').innerText = `✨ ${matchedHero.feature}\n\n⚔️ 招式：\n1. ${matchedHero.skills[0]}\n2. ${matchedHero.skills[1]}\n3. ${matchedHero.skills[2]}\n${s4Text}${starText}`;
+            
+            // 將攻擊力陣列改成整合進各招式名稱後
+            document.getElementById('detail-desc').innerText = `✨ ${matchedHero.feature}\n\n💖 生命: ${matchedHero.baseHp} | 🪄 提示: ${matchedHero.baseHints}\n\n⚔️ 招式：\n1. ${matchedHero.skills[0]} (攻擊力: ${matchedHero.baseDmg[0]})\n2. ${matchedHero.skills[1]} (攻擊力: ${matchedHero.baseDmg[1]})\n3. ${matchedHero.skills[2]} (攻擊力: ${matchedHero.baseDmg[2]})\n${s4Text}${starText}`;
         } else {
             document.getElementById('detail-title').innerText = s.name;
             document.getElementById('detail-desc').innerText = (s.desc || "一張魔法貼紙！") + starText;
@@ -574,7 +614,6 @@ function openLobby() {
     const lobby = document.getElementById('gacha-lobby');
     if (lobby) lobby.style.display = 'flex';
     if (typeof bgm !== 'undefined') bgm.pause();
-    // 播放大廳音樂
     startLobbyMusic();
 }
 
@@ -583,7 +622,6 @@ function closeLobby() {
     if (lobby) lobby.style.display = 'none';
     checkUnlocks();
     changeHeroSelection(0);
-    // 停止大廳音樂
     stopLobbyMusic();
     if (typeof isMusicPlaying !== 'undefined' && isMusicPlaying && typeof bgm !== 'undefined') {
         bgm.play().catch(e => console.log('bgm resume error'));
@@ -624,7 +662,7 @@ function createLobbyUI() {
         </div>
     `);
 
-    // 加入按鈕樣式
+    // 加入按鈕樣式，並★強制放大更換英雄的左右按鈕
     const style = document.createElement('style');
     style.textContent = `
         .lobby-btn {
@@ -640,12 +678,31 @@ function createLobbyUI() {
             flex: 0 0 auto;
         }
         .lobby-btn:active { transform: scale(0.95); }
+        
+        /* ★ 將選單左右切換按鈕放大並美化 */
+        button[onclick*="changeHeroSelection"] {
+            font-size: 36px !important;
+            padding: 10px 25px !important;
+            border-radius: 15px !important;
+            background: rgba(255, 255, 255, 0.9) !important;
+            color: #8e44ad !important;
+            border: 4px solid #ffd700 !important;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.3) !important;
+            cursor: pointer;
+            transition: 0.2s;
+        }
+        button[onclick*="changeHeroSelection"]:hover {
+            transform: scale(1.1);
+            background: #fff9c4 !important;
+        }
+
         @keyframes breatheAnim {
             0%, 100% { transform: translateY(0); }
             50% { transform: translateY(-8px); }
         }
         @media (max-width: 600px) {
             .lobby-btn { padding: 12px 20px; font-size: 16px; }
+            button[onclick*="changeHeroSelection"] { font-size: 28px !important; padding: 8px 15px !important; }
         }
     `;
     document.head.appendChild(style);

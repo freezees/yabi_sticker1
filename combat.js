@@ -1,4 +1,4 @@
-// combat.js - 戰鬥迴圈與爆擊系統 (寶箱互動動畫版) - 修正第二關死亡卡住問題
+// combat.js - 戰鬥迴圈與爆擊系統 (寶箱互動動畫版) - 修正第二關死亡卡住問題 + 新增米拉被動防挫折機制 + 戰鬥寵物系統
 
 window.hasUsedUlt = false; 
 window.pendingIsCrit = false; 
@@ -9,7 +9,6 @@ const battleBgmList = ['assets/music/bgm.mp3', 'assets/music/bgm2.mp3', 'assets/
 let currentBattleBgmIdx = -1;
 
 function playRandomBattleBgm() {
-    // 隨機選一首，但避免重複播放同一首
     let pool = battleBgmList.map((_, i) => i).filter(i => i !== currentBattleBgmIdx);
     currentBattleBgmIdx = pool[Math.floor(Math.random() * pool.length)];
     const newSrc = battleBgmList[currentBattleBgmIdx];
@@ -18,6 +17,37 @@ function playRandomBattleBgm() {
     bgm.currentTime = 0;
     bgm.volume = 0.1;
     bgm.play().then(() => isMusicPlaying = true).catch(e => null);
+}
+
+// 幫助在戰鬥畫面更新寵物的函式
+function updateCombatPet(heroImgElem, heroData) {
+    if (!heroImgElem) return;
+    let combatPet = document.getElementById('combat-pet-img');
+    if (!combatPet) {
+        combatPet = document.createElement('img');
+        combatPet.id = 'combat-pet-img';
+        combatPet.style.position = 'absolute';
+        combatPet.style.bottom = '0px';  // 貼齊英雄腳底
+        combatPet.style.right = '-20px'; // 放在英雄旁邊偏右下
+        combatPet.style.width = '80px';
+        combatPet.style.zIndex = '5';
+        combatPet.style.animation = 'breatheAnim 2s infinite';
+        combatPet.style.pointerEvents = 'none'; // 防止點擊干擾
+        
+        if (window.getComputedStyle(heroImgElem.parentElement).position === 'static') {
+            heroImgElem.parentElement.style.position = 'relative';
+        }
+        heroImgElem.parentElement.appendChild(combatPet);
+    }
+    
+    // 判斷是否滿五星解鎖寵物
+    let stars = (window.gachaData && window.gachaData.stars) ? (window.gachaData.stars[selectedHeroIdx] || 0) : 0;
+    if (stars >= 5 && heroData.petImg) {
+        combatPet.src = heroData.petImg;
+        combatPet.style.display = 'block';
+    } else {
+        combatPet.style.display = 'none';
+    }
 }
 
 function startGame() {
@@ -39,6 +69,8 @@ function startGame() {
     if(heroImg) {
         heroImg.src = `${hero.folder}/hero.png`;
         heroImg.classList.remove('ssr-glow');
+        // ★ 呼叫戰鬥寵物更新
+        updateCombatPet(heroImg, hero);
     }
     
     try { document.getElementById('hero-atk-sfx').src = `${hero.folder}/atk.mp3`; } catch(e){}
@@ -79,8 +111,15 @@ function restartFromFailure() {
     
     failBgm.pause(); failBgm.currentTime = 0; if(isMusicPlaying) playRandomBattleBgm(); else { bgm.src = battleBgmList[Math.floor(Math.random()*battleBgmList.length)]; bgm.currentTime = 0; }
     document.getElementById('game-over-screen').style.display = 'none';
+    
+    const hero = heroes[selectedHeroIdx];
     let heroImg = document.getElementById('hero-img'); 
-    if(heroImg) { heroImg.src = `${heroes[selectedHeroIdx].folder}/hero.png`; heroImg.classList.remove('ssr-glow'); }
+    if(heroImg) { 
+        heroImg.src = `${hero.folder}/hero.png`; 
+        heroImg.classList.remove('ssr-glow'); 
+        // ★ 呼叫戰鬥寵物更新
+        updateCombatPet(heroImg, hero);
+    }
     updateHP(); nextTask();
 }
 
@@ -93,6 +132,11 @@ function updateHP() {
         bgm.pause(); 
         failBgm.play().catch(e => {}); 
         let heroImg = document.getElementById('hero-img'); if(heroImg) heroImg.src = `${heroes[selectedHeroIdx].folder}/dead.png`; 
+        
+        // 死亡時隱藏寵物
+        let combatPet = document.getElementById('combat-pet-img');
+        if (combatPet) combatPet.style.display = 'none';
+
         let goDelay = (currentLvl === 2) ? 2500 : 1500;
         setTimeout(() => { 
             let goScreen = document.getElementById('game-over-screen'); 
@@ -224,6 +268,7 @@ function startSpell() {
         const b = document.createElement('button'); b.className = 'letter-btn'; b.innerText = l.toLowerCase(); 
         b.onclick = () => {
             if(isWait || b.classList.contains('letter-correct')) return;
+            
             if(l === currentWord[spellingText.length] || l.toUpperCase() === currentWord[spellingText.length].toUpperCase()) {
                 b.classList.add('letter-correct'); spellingText += l; speak(l, 'en'); advanceSpellingText(); updateWordDisplay();
                 if(spellingText.length === currentWord.length) checkChoice(true);
@@ -231,7 +276,28 @@ function startSpell() {
                 pHP -= (currentLvl === 2 ? 2 : 1); 
                 if(currentLvl === 2) speak(currentWord, 'en');
                 
-                // ★ 修正：第二關死亡時的正確處理流程
+                let currentHero = heroes[selectedHeroIdx];
+                if (currentLvl === 2 && (selectedHeroIdx === 1 || (currentHero && currentHero.name && currentHero.name.includes('米拉')))) {
+                    const correctChar = currentWord[spellingText.length].toLowerCase();
+                    if (typeof showBattleMsg === 'function') {
+                        showBattleMsg(`✨ 米拉魔法發動！正確字母是「${correctChar.toUpperCase()}」！`);
+                    }
+                    const btns = document.querySelectorAll('.letter-btn:not(.letter-correct)');
+                    for(let btn of btns) {
+                        if(btn.innerText.toLowerCase() === correctChar) {
+                            btn.style.animation = "goldPulse 1.5s infinite"; 
+                            btn.style.borderColor = "#ffd700"; 
+                            btn.style.background = "#fff9c4"; 
+                            setTimeout(() => { 
+                                btn.style.animation = ""; 
+                                btn.style.borderColor = "#ffb6c1"; 
+                                btn.style.background = "white"; 
+                            }, 3000); 
+                            break; 
+                        }
+                    }
+                }
+                
                 if(pHP <= 0 && currentLvl === 2) {
                     if(isWait) return;
                     
@@ -244,10 +310,11 @@ function startSpell() {
                         wd.style.fontWeight = 'bold'; 
                         wd.style.textShadow = '0 0 10px #ff4757'; 
                     }
-                    showBattleMsg(`正確答案是：${currentWord.toLowerCase()}`);
+                    if (typeof showBattleMsg === 'function') {
+                        showBattleMsg(`正確答案是：${currentWord.toLowerCase()}`);
+                    }
                     feedback(false);
                     
-                    // ★ 直接觸發遊戲結束畫面
                     setTimeout(() => { 
                         if(pHP <= 0) {
                             bgm.pause(); 
@@ -260,6 +327,10 @@ function startSpell() {
                             if(heroImg && heroImg.src.indexOf('dead') === -1) {
                                 heroImg.src = `${heroes[selectedHeroIdx].folder}/dead.png`;
                             }
+                            
+                            // 死亡時隱藏戰鬥寵物
+                            let combatPet = document.getElementById('combat-pet-img');
+                            if (combatPet) combatPet.style.display = 'none';
                         }
                     }, 2500);
                 } else {
