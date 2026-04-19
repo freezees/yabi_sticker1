@@ -27,12 +27,18 @@ function updateCombatPet(heroImgElem, heroData) {
         combatPet = document.createElement('img');
         combatPet.id = 'combat-pet-img';
         combatPet.style.position = 'absolute';
-        combatPet.style.bottom = '0px';  // 貼齊英雄腳底
-        combatPet.style.right = '-20px'; // 放在英雄旁邊偏右下
+        
+        // ★ 修正戰鬥寵物位置：放在英雄的「後方」（也就是左邊腳下）
+        combatPet.style.bottom = '10px';  
+        combatPet.style.left = '-35px'; 
         combatPet.style.width = '80px';
-        combatPet.style.zIndex = '5';
         combatPet.style.animation = 'breatheAnim 2s infinite';
-        combatPet.style.pointerEvents = 'none'; // 防止點擊干擾
+        combatPet.style.pointerEvents = 'none'; 
+        
+        // ★ 確保英雄擋在寵物前面
+        combatPet.style.zIndex = '1';
+        heroImgElem.style.position = 'relative';
+        heroImgElem.style.zIndex = '2';
         
         if (window.getComputedStyle(heroImgElem.parentElement).position === 'static') {
             heroImgElem.parentElement.style.position = 'relative';

@@ -48,7 +48,6 @@ function changeHeroSelection(dir) {
     const h = heroes[selectedHeroIdx];
     if (!h) return;
 
-    // 取得目前星數與判斷被動是否解鎖
     let stars = window.gachaData.stars[selectedHeroIdx] || 0;
     let isPassiveUnlocked = stars >= 5;
 
@@ -59,20 +58,23 @@ function changeHeroSelection(dir) {
         if (h.unlocked && selectedHeroIdx < 10) preview.classList.add('ssr-glow');
         else preview.classList.remove('ssr-glow');
 
-        // ★ 更新：寵物放置於腳邊
+        // ★ 修正大廳寵物位置：移到左側腳下，並拉高底盤避開文字
         let petImg = document.getElementById('pet-preview');
         if (!petImg) {
             petImg = document.createElement('img');
             petImg.id = 'pet-preview';
             petImg.style.position = 'absolute';
-            petImg.style.bottom = '0px'; // 貼齊腳底
-            petImg.style.right = '5%';   // 放置於右側腳邊
-            petImg.style.width = '100px'; 
+            petImg.style.bottom = '50px'; // 抬高50px避開下方狀態框
+            petImg.style.left = '-10px';  // 放英雄左邊腳下
+            petImg.style.width = '90px'; 
             petImg.style.filter = 'drop-shadow(0 5px 10px rgba(0,0,0,0.5))';
             petImg.style.animation = 'breatheAnim 2s infinite'; 
             petImg.style.pointerEvents = 'none';
-            petImg.style.zIndex = '10';
+            petImg.style.zIndex = '1';    // 寵物層級放低
             
+            preview.style.position = 'relative';
+            preview.style.zIndex = '2';   // 英雄層級拉高
+
             if (window.getComputedStyle(preview.parentElement).position === 'static') {
                 preview.parentElement.style.position = 'relative';
             }
@@ -92,11 +94,12 @@ function changeHeroSelection(dir) {
     if (h.unlocked) {
         if (preview) preview.classList.remove('char-locked');
         if (status) {
+            // ★ 新增 position:relative; z-index:10; 確保文字框永遠在最上層
             status.innerHTML = `
                 <div style="color:#ff1493; font-size:26px; font-weight:900;">${h.name}</div>
                 <div style="color:#f06292; font-size:16px; margin-bottom:8px;">⚔️ ${h.title}</div>
                 
-                <div style="background: rgba(255,255,255,0.9); border: 2px solid #ffb6c1; border-radius: 12px; padding: 10px; font-size: 15px; text-align: left; display: inline-block; color: #333; box-shadow: 0 4px 6px rgba(0,0,0,0.1); width: 100%; max-width: 320px;">
+                <div style="background: rgba(255,255,255,0.9); border: 2px solid #ffb6c1; border-radius: 12px; padding: 10px; font-size: 15px; text-align: left; display: inline-block; color: #333; box-shadow: 0 4px 6px rgba(0,0,0,0.1); width: 100%; max-width: 320px; position:relative; z-index:10;">
                     <div style="display: flex; gap: 15px; justify-content: center; margin-bottom: 5px;">
                         <span>💖 生命: <b style="color:#e74c3c; font-size:18px;">${h.baseHp}</b></span>
                         <span>🪄 提示: <b style="color:#3498db; font-size:18px;">${h.baseHints}</b></span>
