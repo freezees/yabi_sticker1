@@ -1,19 +1,13 @@
-// lobby.js - 精簡彈窗版大廳 (完整修復版 + 大視窗背景圖 + 寵物與數值面板系統)
+// lobby.js - 精簡彈窗版大廳 (完美修復畫面重疊、音樂流暢與換單字防當機版)
 
 const rarityFolderMap = { 'SSR': 'ssr', 'SR': 'sr', 'R': 'r', 'N': 'normal' };
 const FALLBACK_IMAGE = 'assets/meteor.png';
 
-// 大廳背景音樂
-window.lobbyBgm = window.lobbyBgm || new Audio('assets/music/gacha_bgm.mp3');
-window.lobbyBgm.loop = true;
-
+// ★ 統一使用 system.js 的全域概念，確保不會重複產生物件
 window.shopBgm = window.shopBgm || new Audio('assets/music/shop_bgm.mp3');
 window.shopBgm.loop = true;
 window.gachaBgm = window.gachaBgm || new Audio('assets/music/gacha_bgm.mp3');
 window.gachaBgm.loop = true;
-
-// 記錄目前大廳音樂是否正在播放
-let isLobbyMusicPlaying = false;
 
 // ========== 貼紙輔助函數 ==========
 function getStickerDisplayId(s) {
@@ -58,22 +52,22 @@ function changeHeroSelection(dir) {
         if (h.unlocked && selectedHeroIdx < 10) preview.classList.add('ssr-glow');
         else preview.classList.remove('ssr-glow');
 
-        // ★ 修正大廳寵物位置：移到左側腳下，並拉高底盤避開文字
+        // ★ 大廳寵物位置：移到左側腳下，並拉高底盤避開文字
         let petImg = document.getElementById('pet-preview');
         if (!petImg) {
             petImg = document.createElement('img');
             petImg.id = 'pet-preview';
             petImg.style.position = 'absolute';
-            petImg.style.bottom = '50px'; // 抬高50px避開下方狀態框
-            petImg.style.left = '-10px';  // 放英雄左邊腳下
+            petImg.style.bottom = '50px'; 
+            petImg.style.left = '-10px';  
             petImg.style.width = '90px'; 
             petImg.style.filter = 'drop-shadow(0 5px 10px rgba(0,0,0,0.5))';
             petImg.style.animation = 'breatheAnim 2s infinite'; 
             petImg.style.pointerEvents = 'none';
-            petImg.style.zIndex = '1';    // 寵物層級放低
+            petImg.style.zIndex = '1';    
             
             preview.style.position = 'relative';
-            preview.style.zIndex = '2';   // 英雄層級拉高
+            preview.style.zIndex = '2';   
 
             if (window.getComputedStyle(preview.parentElement).position === 'static') {
                 preview.parentElement.style.position = 'relative';
@@ -94,7 +88,6 @@ function changeHeroSelection(dir) {
     if (h.unlocked) {
         if (preview) preview.classList.remove('char-locked');
         if (status) {
-            // ★ 新增 position:relative; z-index:10; 確保文字框永遠在最上層
             status.innerHTML = `
                 <div style="color:#ff1493; font-size:26px; font-weight:900;">${h.name}</div>
                 <div style="color:#f06292; font-size:16px; margin-bottom:8px;">⚔️ ${h.title}</div>
@@ -211,37 +204,19 @@ function updateLobbyUI() {
     }
 }
 
-// ========== 大廳音樂控制 ==========
-function startLobbyMusic() {
-    if (window.lobbyBgm) {
-        window.lobbyBgm.currentTime = 0;
-        window.lobbyBgm.volume = typeof bgm !== 'undefined' ? bgm.volume : 0.1;
-        window.lobbyBgm.play().catch(e => console.log('lobby music error'));
-        isLobbyMusicPlaying = true;
-    }
-}
-
-function stopLobbyMusic() {
-    if (window.lobbyBgm) {
-        window.lobbyBgm.pause();
-        isLobbyMusicPlaying = false;
-    }
-}
-
-// ========== 彈窗管理 ==========
+// ========== 彈窗管理與音樂切換 (完美修復版) ==========
 window.closeLobbyModal = function() {
     const modal = document.getElementById('lobby-modal');
-    if (modal) {
-        modal.style.display = 'none';
-    }
+    if (modal) modal.style.display = 'none';
     
-    // 停止彈窗的音樂
+    // 停止特殊彈窗的音樂
     if (window.gachaBgm) window.gachaBgm.pause();
     if (window.shopBgm) window.shopBgm.pause();
     
-    // 恢復大廳音樂
-    if (isLobbyMusicPlaying) {
-        startLobbyMusic();
+    // ★ 恢復大廳音樂 (如果被暫停的話)
+    if (window.lobbyBgm && window.lobbyBgm.paused) {
+        window.lobbyBgm.volume = window.audioSettings ? window.audioSettings.bgm : 0.5;
+        window.lobbyBgm.play().catch(e => {});
     }
 };
 
@@ -252,8 +227,7 @@ function openModal(contentId) {
     
     if (!modal || !content) return;
     
-    stopLobbyMusic();
-    
+    // 先把其他音樂暫停，避免打架
     if (window.gachaBgm) window.gachaBgm.pause();
     if (window.shopBgm) window.shopBgm.pause();
     
@@ -262,28 +236,40 @@ function openModal(contentId) {
     if (contentId === 'gacha') {
         modalContentBox.style.background = "url('assets/bg_gacha.png') center/cover no-repeat";
         content.innerHTML = buildGachaContent();
+        
+        // ★ 進轉蛋機：暫停大廳音樂，播放轉蛋音樂
+        if (window.lobbyBgm) window.lobbyBgm.pause();
         if (window.gachaBgm) {
             window.gachaBgm.currentTime = 0;
-            window.gachaBgm.play().catch(e => console.log('gacha music error'));
+            window.gachaBgm.volume = window.audioSettings ? window.audioSettings.bgm : 0.5;
+            window.gachaBgm.play().catch(e => {});
         }
     } else if (contentId === 'shop') {
         modalContentBox.style.background = "url('assets/bg_shop.png') center/cover no-repeat";
         content.innerHTML = buildShopContent();
+        
+        // ★ 進商店：暫停大廳音樂，播放商店音樂
+        if (window.lobbyBgm) window.lobbyBgm.pause();
         if (window.shopBgm) {
             window.shopBgm.currentTime = 0;
-            window.shopBgm.play().catch(e => console.log('shop music error'));
+            window.shopBgm.volume = window.audioSettings ? window.audioSettings.bgm : 0.5;
+            window.shopBgm.play().catch(e => {});
         }
-    } else if (contentId === 'collection') {
-        content.innerHTML = buildCollectionContent();
-    } else if (contentId === 'wall') {
-        content.innerHTML = buildWallContent();
-    } else if (contentId === 'lessons') {
-        if (!verifyParent()) return;
-        content.innerHTML = buildLessonsContent();
-    } else if (contentId === 'report') {
-        content.innerHTML = buildReportContent();
-    } else if (contentId === 'rules') {
-        content.innerHTML = buildRulesContent();
+    } else {
+        // ★ 其他彈窗 (所有貼紙、展示牆、戰報)：維持播放大廳音樂！
+        if (window.lobbyBgm && window.lobbyBgm.paused) {
+            window.lobbyBgm.volume = window.audioSettings ? window.audioSettings.bgm : 0.5;
+            window.lobbyBgm.play().catch(e => {});
+        }
+        
+        if (contentId === 'collection') content.innerHTML = buildCollectionContent();
+        else if (contentId === 'wall') content.innerHTML = buildWallContent();
+        else if (contentId === 'lessons') {
+            if (!verifyParent()) return;
+            content.innerHTML = buildLessonsContent();
+        } 
+        else if (contentId === 'report') content.innerHTML = buildReportContent();
+        else if (contentId === 'rules') content.innerHTML = buildRulesContent();
     }
 
     modal.style.display = 'flex';
@@ -435,18 +421,22 @@ function buildReportContent() {
 
 function buildRulesContent() {
     return `
-        <h2 style="text-align:center; font-size:26px;">📜 遊戲規則</h2>
+        <h2 style="text-align:center; font-size:26px;">📜 遊戲規則與寶箱</h2>
         <div style="text-align:center; color:#e74c3c; font-size:18px; margin-bottom:15px;">基礎爆擊率：5% (爆擊傷害 2 倍)</div>
-        <ul style="line-height:2; background:#f9f9f9; padding:20px 30px; border-radius:15px; font-size:18px;">
-            <li>🌈 彩色(SSR)：每張 +1 血量💖，滿星解鎖招式四</li>
-            <li>🟪 紫色(SR)：每張 +1% 爆擊率💥，滿星再 +1%</li>
-            <li>🟨 金色(R)：每 5 張 +1 提示🪄，滿星再 +1</li>
-            <li>⬜ 普通(N)：每 10 張 +1 通關代幣🪙</li>
+        <ul style="line-height:1.8; background:#f9f9f9; padding:15px 25px; border-radius:15px; font-size:16px; text-align:left;">
+            <li><b>⚔️ 關卡挑戰：</b><br>第一關(魔法集氣) ➡️ 第二關(看圖拼字) ➡️ 第三關(聽音盲拼)。<br>打贏第二關即保底獲得 1 倍寶箱。若挑戰第三關成功，<span style="color:#e74c3c; font-weight:bold;">寶箱金幣翻倍！</span>若第三關失敗，仍可帶回 1 倍寶箱。</li>
+            <hr style="border:0; border-top:2px dashed #bdc3c7; margin:10px 0;">
+            <li><b>🎁 寶箱金幣：</b> 彩色(50) / 紫色(25) / 金色(15) / 一般(10)</li>
+            <hr style="border:0; border-top:2px dashed #bdc3c7; margin:10px 0;">
+            <li>🌈 <b>彩色(SSR)貼紙：</b>每張 +1 血量💖，滿星解鎖專屬招式四</li>
+            <li>🟪 <b>紫色(SR)貼紙：</b>每張 +1% 爆擊率💥，滿星再 +1%</li>
+            <li>🟨 <b>金色(R)貼紙：</b>每 5 張 +1 提示🪄，滿星再 +1</li>
+            <li>⬜ <b>普通(N)貼紙：</b>每 10 張 +1 通關代幣🪙</li>
         </ul>
     `;
 }
 
-// ========== 彈窗內的操作函數 ==========
+// ========== 彈窗內的操作函數 (3D 翻牌動畫 + 全音效版) ==========
 function pullGachaModal(times) {
     if (window.gachaData.coins < times * 10) {
         alert("代幣不足！");
@@ -455,10 +445,20 @@ function pullGachaModal(times) {
     window.gachaData.coins -= times * 10;
     let results = [], totalDust = 0, gotStar = false;
     let dustMap = { 'N': 1, 'R': 3, 'SR': 5, 'SSR': 10 };
+    
+    let highestRarityValue = 0; 
+    let highestRarity = 'N';
+    const rarityValueMap = { 'N': 1, 'R': 2, 'SR': 3, 'SSR': 4 };
 
     for (let i = 0; i < times; i++) {
         let roll = Math.random();
         let rarity = roll < 0.05 ? 'SSR' : (roll < 0.15 ? 'SR' : (roll < 0.40 ? 'R' : 'N'));
+        
+        if (rarityValueMap[rarity] > highestRarityValue) {
+            highestRarityValue = rarityValueMap[rarity];
+            highestRarity = rarity;
+        }
+
         let pool = stickerDB.filter(s => s.rarity === rarity && enabledStickers.includes(s.id));
         if (pool.length === 0) pool = stickerDB.filter(s => enabledStickers.includes(s.id));
         let picked = pool[Math.floor(Math.random() * pool.length)];
@@ -476,6 +476,7 @@ function pullGachaModal(times) {
         }
         results.push(picked);
     }
+    
     window.gachaData.dust += totalDust;
     localStorage.setItem('gachaSystemV5', JSON.stringify(window.gachaData));
     updateLobbyUI();
@@ -484,7 +485,7 @@ function pullGachaModal(times) {
     results.forEach(res => {
         let assets = getStickerAssets(res);
         let glowClass = res.rarity === 'SSR' ? 'ssr-glow' : (res.rarity === 'SR' ? 'sr-glow' : (res.rarity === 'R' ? 'r-glow' : ''));
-        resultHtml += `<div class="sticker-card rarity-${res.rarity}" style="width:100px; height:100px;">
+        resultHtml += `<div class="sticker-card rarity-${res.rarity}" style="width:100px; height:100px; cursor:pointer;" onclick="showStickerDetail(${res.id})">
             <div class="sticker-id">${getStickerDisplayId(res)}</div>
             <img src="${assets.img}" class="${glowClass}" style="width:70%;">
             <div class="rarity-badge badge-${res.rarity}">${res.rarity}</div>
@@ -492,14 +493,79 @@ function pullGachaModal(times) {
     });
     resultHtml += '</div>';
     let msg = `抽到 ${times} 張貼紙！${gotStar ? '⭐ 星級提升！' : ''}${totalDust > 0 ? `✨ 獲得 ${totalDust} 星塵` : ''}`;
-    
+
+    let preGlowCss = '';
+    let openAudioUrl = 'assets/music/gacha_open.mp3';
+
+    if (highestRarity === 'SSR') {
+        preGlowCss = 'animation: rainbowGlow 0.5s infinite, severeShake 0.5s infinite; transform: scale(1.1);';
+        openAudioUrl = 'assets/music/gacha_epic.mp3'; 
+    } else if (highestRarity === 'SR') {
+        preGlowCss = 'box-shadow: 0 0 50px #9b59b6, 0 0 100px #8e44ad; animation: severeShake 0.5s infinite;';
+    } else if (highestRarity === 'R') {
+        preGlowCss = 'box-shadow: 0 0 30px #f1c40f;';
+    }
+
     document.getElementById('lobby-modal-content').innerHTML = `
-        <div style="text-align:center; background:rgba(0,0,0,0.6); padding:20px; border-radius:20px;">
-            ${resultHtml}
-            <div style="font-size:22px; color:white; font-weight:bold;">${msg}</div>
-            <button class="big-btn" style="margin-top:20px; font-size:20px; padding:15px 40px;" onclick="refreshGachaModal()">確認</button>
+        <style>
+            .flip-container { perspective: 1000px; width: 200px; height: 280px; margin: 40px auto; }
+            .flipper { transition: transform 0.8s cubic-bezier(0.175, 0.885, 0.32, 1.275); transform-style: preserve-3d; position: relative; width: 100%; height: 100%; }
+            .flip-container.flipped .flipper { transform: rotateY(180deg); }
+            .front, .back { backface-visibility: hidden; position: absolute; top: 0; left: 0; width: 100%; height: 100%; border-radius: 20px; }
+            .front { background: linear-gradient(135deg, #ffb6c1 0%, #f06292 100%); border: 8px solid white; box-shadow: 0 10px 20px rgba(0,0,0,0.3); display: flex; align-items: center; justify-content: center; font-size: 80px; color: white; text-shadow: 0 0 20px rgba(255,255,255,0.8); animation: breatheAnim 1.5s infinite alternate; transition: all 0.3s; }
+            .front::before { content: ''; position: absolute; width: 80%; height: 80%; border: 2px dashed rgba(255,255,255,0.5); border-radius: 10px; }
+            .back { transform: rotateY(180deg); background: white; box-shadow: 0 0 50px white; }
+            @keyframes flashBang { 0% { opacity: 0; transform: scale(0.5); } 50% { opacity: 1; transform: scale(3); background: white; } 100% { opacity: 0; transform: scale(4); } }
+            .flash-overlay { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: white; z-index: 100; pointer-events: none; opacity: 0; }
+        </style>
+
+        <div style="text-align:center; position: relative; height: 100%; display: flex; flex-direction: column; justify-content: center;">
+            <div id="gacha-animation-layer">
+                <div style="font-size: 24px; color: #ffd700; font-weight: bold; margin-bottom: 20px; text-shadow: 2px 2px 4px black;">魔法陣啟動中...</div>
+                <div class="flip-container" id="gacha-flip-box">
+                    <div class="flipper">
+                        <div class="front" id="gacha-card-back" style="background: url('assets/card_back.png') center/contain no-repeat; border: none; box-shadow: none;"></div>
+                        <div class="back"></div>
+                    </div>
+                </div>
+            </div>
+            <div id="flash-screen" class="flash-overlay"></div>
+            <div id="gacha-result-layer" style="display:none; background:rgba(0,0,0,0.6); padding:20px; border-radius:20px; margin-top: -20px;">
+                ${resultHtml}
+                <div style="font-size:22px; color:white; font-weight:bold;">${msg}</div>
+                <button class="big-btn" style="margin-top:20px; font-size:20px; padding:15px 40px;" onclick="refreshGachaModal()">確認</button>
+            </div>
         </div>
     `;
+
+    let chargeAudio = new Audio('assets/music/gacha_charge.mp3');
+    chargeAudio.volume = window.audioSettings ? window.audioSettings.sfx : 1.0;
+    chargeAudio.play().catch(e => {});
+
+    setTimeout(() => {
+        let cardBack = document.getElementById('gacha-card-back');
+        if (cardBack) cardBack.style.cssText += preGlowCss;
+
+        setTimeout(() => {
+            let flipBox = document.getElementById('gacha-flip-box');
+            let flash = document.getElementById('flash-screen');
+            if (flipBox) flipBox.classList.add('flipped');
+            if (flash) flash.style.animation = 'flashBang 1s ease-out forwards';
+            
+            let openAudio = new Audio(openAudioUrl);
+            openAudio.volume = window.audioSettings ? window.audioSettings.sfx : 1.0;
+            openAudio.play().catch(e => {});
+
+            setTimeout(() => {
+                let animLayer = document.getElementById('gacha-animation-layer');
+                let resLayer = document.getElementById('gacha-result-layer');
+                if (animLayer) animLayer.style.display = 'none';
+                if (resLayer) resLayer.style.display = 'block';
+            }, 400); 
+
+        }, 500); 
+
+    }, 1500); 
 }
 
 function refreshGachaModal() {
@@ -544,7 +610,6 @@ function editWallSlot(index) {
     }
 }
 
-// ★ 更新：取消陣列顯示，改為在招式後面標註攻擊力
 window.showStickerDetail = function(stickerId) {
     let s = stickerDB[stickerId];
     if (!s || !window.gachaData.collection.includes(stickerId)) return;
@@ -561,15 +626,34 @@ window.showStickerDetail = function(stickerId) {
             let s4Text = is5Star ? `4. 被動：${matchedHero.passiveDesc}` : `4. 🔒 招式四被動 (滿五星解鎖)`;
             document.getElementById('detail-title').innerText = `${matchedHero.name} - ${matchedHero.title}`;
             
-            // 將攻擊力陣列改成整合進各招式名稱後
             document.getElementById('detail-desc').innerText = `✨ ${matchedHero.feature}\n\n💖 生命: ${matchedHero.baseHp} | 🪄 提示: ${matchedHero.baseHints}\n\n⚔️ 招式：\n1. ${matchedHero.skills[0]} (攻擊力: ${matchedHero.baseDmg[0]})\n2. ${matchedHero.skills[1]} (攻擊力: ${matchedHero.baseDmg[1]})\n3. ${matchedHero.skills[2]} (攻擊力: ${matchedHero.baseDmg[2]})\n${s4Text}${starText}`;
         } else {
             document.getElementById('detail-title').innerText = s.name;
             document.getElementById('detail-desc').innerText = (s.desc || "一張魔法貼紙！") + starText;
         }
+
+        let playBtn = document.getElementById('play-video-btn');
+        let videoContainer = document.getElementById('video-container');
+        let detailVideo = document.getElementById('detail-video');
+        if (playBtn && videoContainer && detailVideo) {
+            detailVideo.pause();
+            videoContainer.style.display = 'none';
+            if (stars >= 5 && assets.vid) {
+                playBtn.style.display = 'inline-block';
+                playBtn.onclick = function() {
+                    videoContainer.style.display = 'block';
+                    detailVideo.querySelector('source').src = assets.vid;
+                    detailVideo.load();
+                    detailVideo.play();
+                };
+            } else {
+                playBtn.style.display = 'none';
+            }
+        }
     }
 };
 
+// ★ 核心修復區：切換單字庫時，防當機與防卡死完美版！
 function updateLessonsModal(checkbox) {
     if (checkbox.checked) {
         if (!activeLessons.includes(checkbox.value)) activeLessons.push(checkbox.value);
@@ -582,7 +666,46 @@ function updateLessonsModal(checkbox) {
         }
     }
     localStorage.setItem('activeLessons', JSON.stringify(activeLessons));
-    buildCurrentWordList();
+    
+    if (typeof buildCurrentWordList === 'function') buildCurrentWordList();
+    
+    // ★ 防卡死完美機制：判斷玩家是不是在「戰鬥中」偷改單字
+    let gameCont = document.getElementById('game-container');
+    if (gameCont && gameCont.classList.contains('game-show')) {
+        // 1. 強制鎖死戰鬥，隱藏戰鬥畫面與結算畫面
+        if (typeof isWait !== 'undefined') isWait = true;
+        gameCont.classList.remove('game-show');
+        
+        let victScreen = document.getElementById('victory-screen');
+        if (victScreen) victScreen.style.display = 'none';
+        
+        // 2. ★ 核心修復：把「選英雄的開始畫面」叫出來！(不然會卡在無盡虛空)
+        let startScreen = document.getElementById('start-screen');
+        if(startScreen) {
+            startScreen.style.display = 'flex';
+            setTimeout(() => startScreen.style.opacity = '1', 10);
+        }
+        
+        // 3. 安全停止戰鬥中的音樂，恢復大廳音樂
+        let combatBgm = document.getElementById('my-bgm');
+        if (combatBgm && combatBgm.pause) combatBgm.pause();
+        if (typeof window.speechSynthesis !== 'undefined') window.speechSynthesis.cancel();
+        
+        if (typeof window.lobbyBgm !== 'undefined' && window.lobbyBgm.paused) {
+            window.lobbyBgm.volume = window.audioSettings ? window.audioSettings.bgm : 0.5;
+            window.lobbyBgm.play().catch(e => {});
+        }
+        
+        // 4. 自動幫玩家把設定跟單字本彈窗關乾淨
+        if (typeof toggleSettings === 'function') toggleSettings(false);
+        closeWordListModal();
+        if (typeof closeLobbyModal === 'function') closeLobbyModal();
+        
+        // 5. 貼心提示阿比
+        setTimeout(() => {
+            alert("🔄 單字本已更換！為了避免魔法衝突，已將您安全送回營地，請重新開始冒險喔！");
+        }, 100);
+    }
 }
 
 function showLessonWordsModal(lesson) {
@@ -611,24 +734,38 @@ function closeWordListModal() {
     if (modal) modal.style.display = 'none';
 }
 
-// ========== 大廳主畫面 ==========
+// ========== 大廳主畫面 (完美切換背景) ==========
 function openLobby() {
     updateLobbyUI();
+    
+    // ★ 1. 把選英雄畫面隱藏，避免背景疊圖
+    let startScreen = document.getElementById('start-screen');
+    if (startScreen) startScreen.style.display = 'none';
+    
+    // ★ 2. 顯示魔法大廳
     const lobby = document.getElementById('gacha-lobby');
     if (lobby) lobby.style.display = 'flex';
-    if (typeof bgm !== 'undefined') bgm.pause();
-    startLobbyMusic();
+    
+    // ★ 3. 確保大廳音樂繼續播放 (如果還沒播的話)
+    if (window.lobbyBgm && window.lobbyBgm.paused) {
+        window.lobbyBgm.volume = window.audioSettings ? window.audioSettings.bgm : 0.5;
+        window.lobbyBgm.play().catch(e => {});
+    }
 }
 
 function closeLobby() {
+    // ★ 1. 隱藏魔法大廳
     const lobby = document.getElementById('gacha-lobby');
     if (lobby) lobby.style.display = 'none';
+    
+    // ★ 2. 顯示選英雄畫面
+    let startScreen = document.getElementById('start-screen');
+    if (startScreen) startScreen.style.display = 'flex';
+    
     checkUnlocks();
     changeHeroSelection(0);
-    stopLobbyMusic();
-    if (typeof isMusicPlaying !== 'undefined' && isMusicPlaying && typeof bgm !== 'undefined') {
-        bgm.play().catch(e => console.log('bgm resume error'));
-    }
+    
+    // ★ 注意！不要暫停 lobbyBgm，讓它在選英雄畫面繼續播！
 }
 
 // ========== 建立大廳畫面 ==========
@@ -665,7 +802,6 @@ function createLobbyUI() {
         </div>
     `);
 
-    // 加入按鈕樣式，並★強制放大更換英雄的左右按鈕
     const style = document.createElement('style');
     style.textContent = `
         .lobby-btn {
@@ -682,7 +818,6 @@ function createLobbyUI() {
         }
         .lobby-btn:active { transform: scale(0.95); }
         
-        /* ★ 將選單左右切換按鈕放大並美化 */
         button[onclick*="changeHeroSelection"] {
             font-size: 36px !important;
             padding: 10px 25px !important;

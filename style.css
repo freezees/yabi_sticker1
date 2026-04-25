@@ -115,7 +115,7 @@ body {
     #battle-scene { 
         height: auto; 
         min-height: 180px;
-        margin-top: 5px;
+        margin-top: 100px !important; /* ★ 修正：手機版往下推 100px */
         gap: 10px;
     }
 
@@ -194,10 +194,15 @@ body {
         padding: 5px;
     }
 
+    /* ★ 修正：手機版字母按鈕大小強制放大！ */
     .letter-btn { 
-        width: 48px; 
-        height: 48px; 
-        font-size: 22px;
+        width: auto !important; 
+        height: auto !important;
+        font-size: 32px !important;  
+        font-weight: bold !important;
+        padding: 8px 16px !important;
+        min-width: 55px !important;
+        border-radius: 10px !important;
         flex-shrink: 0;
     }
 
@@ -232,7 +237,8 @@ body {
     }
 
     #test-panel {
-        top: 60px;
+        /* ★ 修正：測試面板也往下推一點，避免卡到最上面 */
+        top: 80px !important; 
         left: 8px;
         padding: 6px;
         font-size: 11px;
@@ -256,7 +262,8 @@ h1 { color: #ffffff; font-size: 28px; margin: 40px 0 15px 0; user-select: none; 
     border: 2px solid #a29bfe; box-shadow: 0 4px 10px rgba(0,0,0,0.3); z-index: 150;
 }
 
-#battle-scene { display: flex; justify-content: space-around; width: 100%; height: 280px; align-items: flex-end; margin-top: 10px; z-index: 2; position: relative; }
+/* ★ 修正：桌機版/平板版 往下推 80px */
+#battle-scene { display: flex; justify-content: space-around; width: 100%; height: 280px; align-items: flex-end; margin-top: 80px; z-index: 2; position: relative; }
 .actor-group { width: 45%; text-align: center; display: flex; flex-direction: column; align-items: center; justify-content: flex-end; }
 
 .character-img-hero { width: 150px; height: 150px; object-fit: contain; transition: 0.3s; position: relative; z-index: 500; }
@@ -306,7 +313,24 @@ h1 { color: #ffffff; font-size: 28px; margin: 40px 0 15px 0; user-select: none; 
 #spelling-container { display: none; flex-direction: column; align-items: center; width: 100%; padding-bottom: 10px; margin-top: auto; z-index: 10; }
 #word-display { font-size: 32px; font-weight: bold; color: #ffffff; letter-spacing: 5px; border-bottom: 4px dashed #ffb6c1; padding: 0 10px; text-shadow: 2px 2px 4px rgba(0,0,0,0.8); margin-bottom: 15px; min-height: 40px; }
 #letters-grid { display: flex; flex-wrap: wrap; gap: 12px; justify-content: center; width: 100%; max-width: 420px; padding: 5px; }
-.letter-btn { width: 54px; height: 54px; background: white; border: 3px solid #ffb6c1; border-radius: 12px; font-size: 24px; font-weight: bold; color: var(--dark-pink); cursor: pointer; box-shadow: 0 4px 0 #ffb6c1; display: flex; align-items: center; justify-content: center; text-transform: lowercase; }
+
+/* ★ 修正：全域字母按鈕強制設定字體大小與顏色 */
+.letter-btn { 
+    width: 54px; 
+    height: 54px; 
+    background: white; 
+    border: 3px solid #ffb6c1; 
+    border-radius: 12px; 
+    color: #ff4757 !important;  /* 強制變紅 */
+    font-size: 32px !important; /* 強制放大 */
+    font-weight: bold !important; 
+    cursor: pointer; 
+    box-shadow: 0 4px 0 #ffb6c1; 
+    display: flex; 
+    align-items: center; 
+    justify-content: center; 
+    text-transform: lowercase; 
+}
 .letter-correct { background: #eee !important; color: #ccc !important; box-shadow: none !important; transform: translateY(3px); pointer-events: none; }
 
 .modal-overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.85); z-index: 2000; align-items: center; justify-content: center; }
@@ -390,7 +414,7 @@ h1 { color: #ffffff; font-size: 28px; margin: 40px 0 15px 0; user-select: none; 
 .rarity-badge { position: absolute; bottom: 2px; right: 4px; font-size: 12px; font-weight: 900; font-style: italic; text-shadow: 1px 1px 0 #fff; z-index: 5; }
 .badge-SSR { color: #ff4757; } .badge-SR { color: #8e44ad; } .badge-R { color: #d35400; } .badge-N { color: #7f8c8d; }
 
-.wall-grid { display: flex; justify-content: center; gap: 15px; flex-wrap: wrap; margin-top: 20px; }
+.wall-grid { display: flex; justify-content: center; gap: 15px; flex-wrap: margin-top: 20px; }
 .wall-slot { width: 100px; height: 100px; border: 4px dashed #ffb6c1; border-radius: 20px; display: flex; align-items: center; justify-content: center; background: rgba(255,255,255,0.5); cursor: pointer; position: relative; }
 .wall-slot img { width: 90%; filter: drop-shadow(0 5px 10px rgba(0,0,0,0.2)); }
 
@@ -562,15 +586,13 @@ h1 { color: #ffffff; font-size: 28px; margin: 40px 0 15px 0; user-select: none; 
 }
 
 /* 彈窗內貼紙網格 */
-/* 彈窗內貼紙網格 */
 .sticker-grid {
     display: grid;
-    /* 讓最小寬度稍微變大，避免卡片太窄 */
     grid-template-columns: repeat(auto-fill, minmax(100px, 1fr)); 
-    gap: 20px; /* 加大卡片之間的間距 (原本是 10px) */
+    gap: 20px; 
     width: 100%;
-    padding: 10px; /* 外圍留一點呼吸空間 */
-    box-sizing: border-box; /* 確保 padding 不會讓寬度爆掉 */
+    padding: 10px; 
+    box-sizing: border-box; 
 }
 
 .wall-grid {
@@ -605,4 +627,196 @@ h1 { color: #ffffff; font-size: 28px; margin: 40px 0 15px 0; user-select: none; 
     padding: 10px 25px;
     border-radius: 50px;
     cursor: pointer;
+}
+
+/* ============================================
+   戰鬥系統與寶箱特效專用動畫 (從 JS 遷移)
+   ============================================ */
+@keyframes petAnxiousShake {
+    0%, 100% { transform: scale(1.3) rotate(0deg); }
+    25% { transform: scale(1.3) rotate(-15deg) translateX(-2px); }
+    75% { transform: scale(1.3) rotate(15deg) translateX(2px); }
+}
+@keyframes petBounceInPlace {
+    0%, 100% { transform: translateY(0); }
+    50% { transform: translateY(-25px) scale(1.1); }
+}
+@keyframes wrongLetterShake {
+    0%, 100% { transform: translateX(0); background: white; }
+    25%, 75% { transform: translateX(-5px); background: #f1f2f6; }
+    50% { transform: translateX(5px); background: #f1f2f6; }
+}
+@keyframes redLightPulse {
+    0%, 100% { transform: scale(1); box-shadow: 0 0 10px #ff4757; background: #ffcccc; border-color: #ff4757; color: #d63031; }
+    50% { transform: scale(1.25); box-shadow: 0 0 30px #ff4757; background: #ff4757; border-color: #c0392b; color: white; }
+}
+@keyframes dragonBlockedAtk {
+    0% { transform: translateX(0) scale(1); }
+    15% { transform: translateX(-100px) scale(1.15); }
+    85% { transform: translateX(-100px) scale(1.15); }
+    100% { transform: translateX(0) scale(1); }
+}
+@keyframes rageFullPulse {
+    0%, 100% { background-color: #ff4757; box-shadow: 0 0 5px #ff4757; }
+    50% { background-color: #ffcccc; box-shadow: 0 0 20px #ff4757, 0 0 40px #ff4757; }
+}
+@keyframes legoExplodeAndHoming {
+    0% { transform: translate(0, 0) scale(0) rotate(0deg); opacity: 0; }
+    20% { transform: translate(var(--burstX), var(--burstY)) scale(var(--ls)) rotate(var(--burstR)); opacity: 1; filter: drop-shadow(0 0 10px rgba(255,0,0,0.8)); }
+    50% { transform: translate(var(--burstX), var(--burstY)) scale(var(--ls)) rotate(calc(var(--burstR) + 90deg)); opacity: 1; filter: drop-shadow(0 0 20px #ff4757); }
+    100% { transform: translate(var(--ldx), var(--ldy)) scale(0.2) rotate(calc(var(--burstR) + 360deg)); opacity: 0; filter: blur(2px); }
+}
+@keyframes superShakeChest {
+    0%, 100% { transform: translateX(0) scale(1.2); }
+    25% { transform: translateX(-15px) scale(1.2) rotate(-8deg); }
+    50% { transform: translateX(15px) scale(1.2) rotate(8deg); }
+    75% { transform: translateX(-15px) scale(1.2) rotate(-8deg); }
+}
+
+/* ========================================= */
+/* ★ 樂高龍大招專屬動畫區 ★ */
+/* ========================================= */
+
+/* 1. 樂高龍與畫面的劇烈震動 */
+.severe-shake {
+    animation: severeShake 0.1s infinite !important;
+}
+
+@keyframes severeShake {
+    0% { transform: translate(3px, 2px) rotate(0deg); }
+    10% { transform: translate(-2px, -3px) rotate(-1deg); }
+    20% { transform: translate(-4px, 0px) rotate(1deg); }
+    30% { transform: translate(0px, 3px) rotate(0deg); }
+    40% { transform: translate(2px, -2px) rotate(1deg); }
+    50% { transform: translate(-2px, 3px) rotate(-1deg); }
+    60% { transform: translate(-4px, 2px) rotate(0deg); }
+    70% { transform: translate(3px, 2px) rotate(-1deg); }
+    80% { transform: translate(-2px, -2px) rotate(1deg); }
+    90% { transform: translate(3px, 3px) rotate(0deg); }
+    100% { transform: translate(2px, -3px) rotate(-1deg); }
+}
+
+/* 2. 樂高積木爆炸並飛向畫面的特效 */
+@keyframes legoExplodeAndHoming {
+    0% { 
+        transform: translate(0, 0) scale(0) rotate(0deg); 
+        opacity: 1; 
+    }
+    30% { 
+        /* 瞬間往四面八方炸開 */
+        transform: translate(var(--burstX), var(--burstY)) scale(var(--ls)) rotate(var(--burstR)); 
+        opacity: 1; 
+    }
+    100% { 
+        /* 飛向畫面左側並消失 */
+        transform: translate(var(--ldx), var(--ldy)) scale(0.5) rotate(720deg); 
+        opacity: 0; 
+    }
+}
+
+/* ========================================= */
+/* ★ 樂高龍大招：二階警告與放射暴風 ★ */
+/* ========================================= */
+
+/* 1. 怒氣條危險閃爍警報 */
+@keyframes rageBlink {
+    0%, 100% { opacity: 1; box-shadow: 0 0 20px #ff4757, 0 0 40px #ff4757 inset; border-color: #ff4757; transform: scale(1); }
+    50% { opacity: 0.5; box-shadow: 0 0 5px #ff4757; border-color: #fff; transform: scale(1.05); }
+}
+
+/* 2. 樂高龍生氣原地跳腳 */
+.dragon-stomp-anim {
+    animation: dragonStomp 0.15s infinite alternate ease-in-out !important;
+    filter: drop-shadow(0 0 20px rgba(255, 0, 0, 0.8)); /* 加上紅色怒氣光暈 */
+}
+@keyframes dragonStomp {
+    0% { transform: translateY(0) scale(1.05); }
+    100% { transform: translateY(-30px) scale(1); } /* 快速上下跳動 */
+}
+
+/* 3. 從嘴巴發射的放射狀積木風暴 */
+@keyframes legoRadialShoot {
+    0% { 
+        /* 起點：龍的嘴巴附近 */
+        transform: translate(var(--burstX), var(--burstY)) scale(0) rotate(0deg); 
+        opacity: 0; 
+    }
+    10% {
+        transform: translate(var(--burstX), var(--burstY)) scale(var(--ls)) rotate(var(--burstR)); 
+        opacity: 1;
+    }
+    100% { 
+        /* 終點：畫面左側的英雄區域（扇形散開） */
+        transform: translate(var(--ldx), var(--ldy)) scale(var(--ls)) rotate(720deg); 
+        opacity: 0; 
+    }
+}
+
+/* ========================================= */
+/* ★ 樂高龍大招：集氣光球特效 ★ */
+/* ========================================= */
+
+.lego-charge-ball {
+    position: absolute;
+    /* 💡 根據你的嘴巴座標 (40, 20) 微調出的光球中心點 */
+    top: 170px;  /* 150px (基準) + 20px (mouthStartY) */
+    right: 240px; /* 200px (基準) + 40px (mouthStartX) */
+    
+    /* 起始大小與定位中心 */
+    width: 0px; 
+    height: 0px;
+    transform: translate(50%, -50%) rotate(0deg); 
+    transform-origin: center center;
+    
+    z-index: 999; /* 在積木 (200) 下面，龍圖片上面 */
+    pointer-events: none;
+    
+    /* 新增：加上發光濾鏡，讓光球看起來更炫 */
+    filter: drop-shadow(0 0 15px rgba(255, 255, 255, 0.9)) blue(1.2);
+    
+    /* 執行集氣動畫：持續 2 秒 */
+    animation: legoChargeAnim 2s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+}
+
+@keyframes legoChargeAnim {
+    0% { 
+        width: 0px; height: 0px; 
+        opacity: 0; 
+        transform: translate(50%, -50%) rotate(0deg); 
+    }
+    15% { 
+        width: 50px; height: 50px; /* 快速長出基礎大小 */
+        opacity: 1; 
+    }
+    80% { 
+        /* 緩慢變大並瘋狂旋轉，吸取周圍能量 */
+        width: 120px; height: 120px; 
+        transform: translate(50%, -50%) rotate(1080deg); 
+        filter: drop-shadow(0 0 25px rgba(255, 255, 255, 1)) brightness(1.5);
+    }
+    90% {
+        /* 💡 噴射前 0.2 秒突然猛烈收縮，準備爆發 */
+        width: 20px; height: 20px;
+        opacity: 1;
+        transform: translate(50%, -50%) rotate(1440deg);
+    }
+    100% { 
+        /* 瞬間消失 (噴射開始) */
+        width: 0px; height: 0px; 
+        opacity: 0; 
+        transform: translate(50%, -50%) rotate(1800deg);
+    }
+}
+
+/* 治療特效動畫 */
+@keyframes floatUpHeal {
+    0% { transform: translateY(0) scale(1); opacity: 1; color: #2ecc71; }
+    100% { transform: translateY(-60px) scale(1.3); opacity: 0; color: #a8e6cf; }
+}
+.heal-text {
+    position: absolute;
+    font-weight: bold;
+    pointer-events: none;
+    z-index: 800;
+    animation: floatUpHeal 1s ease-out forwards;
 }

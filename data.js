@@ -2,21 +2,26 @@
 const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
 
 let isMusicPlaying = false, voiceVolume = 1.0, isWait = false;
-const bgm = document.getElementById('my-bgm'), winBgm = document.getElementById('win-bgm'), failBgm = document.getElementById('fail-bgm');
-let lobbyBgm = new Audio('assets/music/gacha_bgm.mp3'); lobbyBgm.loop = true;
 
-let pendingDamageForFeedback = 0;
+// 假設這三個 BGM 是在 HTML 裡的 <audio> 標籤
+const bgm = document.getElementById('my-bgm');
+const winBgm = document.getElementById('win-bgm');
+const failBgm = document.getElementById('fail-bgm');
+
+// ★ 修正 1：移除這裡的 let lobbyBgm，統一交由 system.js 進行全域管理
+// ★ 修正 2：將 pendingDamageForFeedback 明確掛載到 window，解決重複宣告與作用域問題
+window.pendingDamageForFeedback = 0;
 
 // 單字庫系統
 const lessonData = {
     "lesson1": ["apple", "banana", "pear", "bread", "carrot", "mango", "rice", "vegetables", "guava", "papaya", "grape", "cheese", "fruit", "potato", "onion", "arm", "ear", "eye", "finger", "hair", "hand", "head", "leg", "nose", "jacket", "raincoat", "skirt", "socks", "t-shirt", "umbrella", "basketball", "bed", "closet", "computer", "skateboard", "teddy bear", "toy train", "big", "small", "long", "short", "new", "old", "orange", "purple", "friend"],
-    "lesson2": ["cat", "dog", "bird", "fish", "tiger", "lion"],
+    "lesson2": ["water", "juice", "coke", "hungry", "thirsty", "soup", "pizza", "pasta", "cake", "ice cream", "hot", "cold", "sunny", "cloudy", "rainy", "draw", "triangle", "circle", "square", "park"],
     "lesson3": ["red", "blue", "green", "yellow", "black", "white"],
     "lesson4": ["one", "two", "three", "four", "five"],
     "lesson5": ["run", "jump", "walk", "sleep", "eat"]
 };
 
-// ★ 自動修復單字庫進度
+// 自動修復單字庫進度
 let activeLessons;
 try { activeLessons = JSON.parse(localStorage.getItem('activeLessons')); } catch(e) { activeLessons = null; }
 if(!Array.isArray(activeLessons) || activeLessons.length === 0) activeLessons = ["lesson1"];
@@ -33,13 +38,13 @@ function buildCurrentWordList() {
 }
 buildCurrentWordList();
 
-// 英雄資料 (★ 新增寵物路徑 petImg 與被動技能說明 passiveDesc)
+// 英雄資料
 const heroes = [
     { 
         folder: 'hero1', name: '艾德恩', title: '晨曦之劍騎士', feature: '代表勇氣與守護', 
         skills: ["突進斬擊", "三連幻影斬", "金色神雷：巨劍天降", "神聖守護 (🌟五星解鎖)"], 
         passiveDesc: "【被動：神聖守護】在危急時刻有機率觸發聖光護盾，抵擋魔龍的致命一擊！",
-        petImg: "hero1/pet.png", // 艾德恩的寵物
+        petImg: "hero1/pet.png", 
         baseHp: 8, baseHints: 1, baseDmg: [1, 2, 3], 
         anims: ["atk-dash", "atk-glow", "atk-glow"], magicImg: "assets/meteor.png", magicAnim: "meteor-anim" 
     },
@@ -47,23 +52,32 @@ const heroes = [
         folder: 'hero2', name: '米拉', title: '潮汐星願仙子', feature: '代表海洋與夢想', 
         skills: ["泡沫星砂彈", "珊瑚星曜海嘯", "深海巨鯨之歌", "海洋復甦 (🌟五星解鎖)"], 
         passiveDesc: "【被動：海洋復甦】進入第二關時，若拼錯單字，米拉的魔法會自動發動並提示正確字母！",
-        petImg: "hero2/pet.png", // 米拉的寵物
+        petImg: "hero2/pet.png", 
         baseHp: 4, baseHints: 3, baseDmg: [2, 2, 3], 
         anims: ["atk-dash", "atk-spin", "atk-glow"], magicImg: "assets/meteor.png", magicAnim: "meteor-anim", magicAudio: "hero2/whale_ult.mp3" 
     },
-    { 
-        folder: 'hero3', name: '莉莉安', title: '幻月百合祭司', feature: '代表純潔與智慧', 
-        skills: ["閃光一擊", "極光跳躍", "天降恆星", "光之祝福 (🌟五星解鎖)"], 
-        passiveDesc: "【被動：光之祝福】每次發動攻擊時，都有微小機率祈求星光回復生命值！",
-        petImg: "hero3/pet.png", // 莉莉安的寵物
-        baseHp: 5, baseHints: 3, baseDmg: [1, 2, 3], 
-        anims: ["atk-dash", "atk-jump", "atk-glow"], magicImg: "assets/meteor.png", magicAnim: "meteor-anim" 
-    },
+// heroes[2] - 露娜（深海治癒使）
+	{ 
+		folder: 'hero3', 
+		name: '露娜', 
+		title: '深海治癒使', 
+		feature: '代表治癒與歌聲', 
+		skills: ["珍珠水彈", "治癒之浪", "深海治癒波", "守護海星 (🌟五星解鎖)"], 
+		passiveDesc: "【被動：守護海星】受到攻擊時，有 50% 機率回復 1 點生命值！",
+		petImg: "hero3/pet.png", 
+		baseHp: 5, 
+		baseHints: 3, 
+		baseDmg: [1, 1, 3],        // 招式1:1滴、招式2:1滴、招式3:3滴
+		anims: ["atk-dash", "atk-glow", "atk-glow"], 
+		magicImg: "hero3/heal_wave.png", 
+		magicAnim: "meteor-anim", 
+		magicAudio: "hero3/atk3_cast.mp3" 
+	},
     { 
         folder: 'hero4', name: '諾娃', title: '璀璨銀河精靈', feature: '代表希望與驚喜', 
         skills: ["冰凌突刺", "寒冰迴旋", "星星光波", "星辰爆發 (🌟五星解鎖)"], 
         passiveDesc: "【被動：星辰爆發】魔法爆擊時，造成的傷害會額外提升，並伴隨絢麗星光！",
-        petImg: "hero4/pet.png", // 諾娃的寵物
+        petImg: "hero4/pet.png", 
         baseHp: 5, baseHints: 3, baseDmg: [1, 2, 3], 
         anims: ["atk-dash", "atk-spin", "atk-glow"], magicImg: "hero4/star_wave.png", magicAnim: "custom", magicAudio: "hero4/wave.mp3" 
     },
@@ -71,7 +85,7 @@ const heroes = [
         folder: 'hero5', name: '黛米', title: '金色豐饒使者', feature: '代表大自然與慷慨', 
         skills: ["飛花葉刃", "狂野藤蔓", "金色麥浪大豐收", "豐收盛宴 (🌟五星解鎖)"], 
         passiveDesc: "【被動：豐收盛宴】戰鬥結束獲得寶箱時，有額外機率讓掉落的金幣翻倍！",
-        petImg: "hero5/pet.png", // 黛米的寵物
+        petImg: "hero5/pet.png", 
         baseHp: 5, baseHints: 3, baseDmg: [1, 2, 3], 
         anims: ["atk-dash", "atk-jump", "atk-glow"], magicImg: "hero5/wheat_wave.png", magicAnim: "custom-nature", magicAudio: "hero5/nature_ult.mp3" 
     }
@@ -89,9 +103,9 @@ for(let i=6; i<=10; i++) {
 
 let selectedHeroIdx = 0;
 
-// ★ 動態擴充版：使用「稀有度 + 編號」來綁定故事
+// 動態擴充版：使用「稀有度 + 編號」來綁定故事
 const customStickers = {
-    // === SR 系列 (紫色神話) ===
+    // === SR 系列 ===
     'SR1': { name: '雙子櫻花精靈', desc: '感情超好的雙胞胎精靈，只要她們抱在一起，周圍就會開滿美麗的粉紅櫻花喔！🌸' },
     'SR2': { name: '晚安星仙子', desc: '總是抱著星星打瞌睡的小仙子。聽說只要乖乖睡覺，她就會把好夢悄悄送進你的被窩裡！🌟' },
     'SR3': { name: '月亮號角兔', desc: '喜歡躺在月亮上吹奏金色的號角。牠的音樂有神奇的魔法，能讓焦躁的心瞬間平靜下來。🌙' },
@@ -100,8 +114,6 @@ const customStickers = {
     'SR6': { name: '珍珠海公主', desc: '來自深海的調皮公主！她的裙襬上裝飾著最珍貴的海星與珍珠，最喜歡對你眨眼微笑。🐚' },
     'SR7': { name: '晨曦玫瑰仙子', desc: '掌管森林花朵的仙子。只要她輕輕揮手，就能讓植物充滿活力，綻放出最美麗的玫瑰！🌹' },
     'SR8': { name: '春日櫻小巫女', desc: '搖著鈴鐺祈福的春日小巫女。手中的櫻花枝能招來好運，為你帶來一整天的開心與平安！⛩️' },
-    
-    // -- 新增 SR9 ~ SR15 --
     'SR9': { name: '彩虹星願小魔女', desc: '乘著彩虹雲朵降臨，手中的星星法杖能揮灑出七彩的幸運光芒！🌈✨' },
     'SR10': { name: '冰火雙子星', desc: '一半是炙熱的火焰，一半是冷冽的冰霜！隨身帶著一隻小火龍，掌控著極限的魔法。🔥❄️' },
     'SR11': { name: '雷雨牧羊女', desc: '掌管天氣的精靈，身邊跟著一隻軟綿綿的烏雲小羊，生氣時可是會打雷的喔！⛈️🐑' },
@@ -110,7 +122,7 @@ const customStickers = {
     'SR14': { name: '深海晶藍人魚', desc: '揮舞著海神三叉戟的人魚公主，身邊總有發光的小水母陪伴，守護著海洋的和平。🔱🐙' },
     'SR15': { name: '彩虹愛心聖騎士', desc: '舉起閃耀的愛心盾牌，穿著絢麗的彩虹鎧甲！她會用彩虹的力量擊退所有噩夢與壞蛋！🛡️🌈' },
 
-    // === R 系列 (金色閃耀) ===
+    // === R 系列 ===
     'R1': { name: '向日葵獅子公主', desc: '頂著像向日葵一樣燦爛的獅子頭套，笑容跟夏天的太陽一樣溫暖！🌻🦁' },
     'R2': { name: '月光酣睡星精靈', desc: '抱著水晶球在月亮上打瞌睡的小男孩，會把好運偷偷塞進你的夢裡。🌙💤' },
     'R3': { name: '紫芋音符女孩', desc: '綁著俏皮雙馬尾，只要她一唱歌，周圍就會飄滿紫色的快樂音符！🎶💜' },
@@ -142,7 +154,7 @@ const customStickers = {
     'R29': { name: '彩虹流星指揮家', desc: '揮動彩虹魔法棒，就能指揮天上的星星排出各種有趣的形狀！🌈✨' },
     'R30': { name: '海星豎琴人魚', desc: '彈奏著珍珠豎琴的銀髮人魚，音樂聲像海浪一樣輕柔，能哄小寶貝進入夢鄉。🧜‍♀️🌊' },
 
-    // === N 系列 (普通魔法) ===
+    // === N 系列 ===
     'N1': { name: '烈日小獅', desc: '體內蘊含烈日之力的調皮小獅，最喜歡在晴天曬太陽，心情好的時候，鬃毛會像火焰一樣燃燒！🔥' },
     'N2': { name: '霹靂雲精靈', desc: '雖然是一朵小小的雷雲，但脾氣可不小！最喜歡在午睡時給你來一記無傷大雅的小閃電，調皮得很！⚡' },
     'N3': { name: '果凍盾衛', desc: '身體像果凍一樣有彈性的粉紅士兵，他的盾牌能反彈所有惡作劇，是森林裡最可靠的果凍守衛！🛡️' },
@@ -200,31 +212,26 @@ const nUniversalDescList = [
     "雖然是一朵小小的雷雲，但脾氣可不小！最喜歡在午睡時給你來一記無傷大雅的小閃電，調皮得很！⚡"
 ];
 
-// 計數器，用來算現在是第幾張 SSR, SR, R, N
 let counts = { 'SSR': 0, 'SR': 0, 'R': 0, 'N': 0 };
 
 for(let i=0; i<200; i++) {
-    // 這裡你以後可以隨意改動擴充！
     let r = 'N';
     if(i < 10) r = 'SSR';      
     else if(i < 30) r = 'SR';  
     else if(i < 70) r = 'R';   
     else r = 'N';
     
-    // 計算這是該稀有度的第幾張
     counts[r]++;
     let currentRank = counts[r];
-    let displayKey = r + currentRank; // 會產出像 'SR1', 'N12' 這樣的字
+    let displayKey = r + currentRank; 
 
     let n = `魔法貼紙 #${currentRank}`;
     let d = "這是一張閃耀著魔法光芒的未知貼紙！快去收集吧！✨";
     
-    // N 貼紙的預設循環故事
     if (r === 'N') {
         d = nUniversalDescList[(currentRank - 1) % nUniversalDescList.length]; 
     }
 
-    // ★ 重頭戲：用 'SR1' 或 'N1' 來找故事，完全不用管絕對 ID 是多少！
     if (customStickers[displayKey]) {
         n = customStickers[displayKey].name;
         d = customStickers[displayKey].desc;
