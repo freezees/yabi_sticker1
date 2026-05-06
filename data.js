@@ -56,20 +56,20 @@ const heroes = [
         baseHp: 4, baseHints: 3, baseDmg: [2, 2, 3], 
         anims: ["atk-dash", "atk-spin", "atk-glow"], magicImg: "assets/meteor.png", magicAnim: "meteor-anim", magicAudio: "hero2/whale_ult.mp3" 
     },
-// heroes[2] - 露娜（深海治癒使）
+// heroes[2] - 露娜（深海奇蹟公主）
 	{ 
 		folder: 'hero3', 
 		name: '露娜', 
-		title: '深海治癒使', 
-		feature: '代表治癒與歌聲', 
-		skills: ["珍珠水彈", "治癒之浪", "深海治癒波", "守護海星 (🌟五星解鎖)"], 
-		passiveDesc: "【被動：守護海星】受到攻擊時，有 50% 機率回復 1 點生命值！",
-		petImg: "hero3/pet.png", 
+		title: '深海奇蹟公主', 
+		feature: '代表愛與大海的奇蹟', 
+		skills: ["愛心水波", "魅惑飛吻", "海神之怒：十連爆", "潮汐之護 (🌟五星解鎖)"], 
+		passiveDesc: "【被動：潮汐之護】當生命值歸零時，小海馬將燃燒魔力引發奇蹟，使露娜重新站起並回復 3 點生命值！（每場戰鬥限定一次）",
+		petImg: "hero3/seahorse.png", // 換成精緻的粉紅小海馬！
 		baseHp: 5, 
 		baseHints: 3, 
-		baseDmg: [1, 1, 3],        // 招式1:1滴、招式2:1滴、招式3:3滴
+		baseDmg: [1, 2, 3],        // 招式1:1滴、招式2:2滴(爆擊4滴)、招式3:3滴(搭配十連爆動畫)
 		anims: ["atk-dash", "atk-glow", "atk-glow"], 
-		magicImg: "hero3/heal_wave.png", 
+		magicImg: "hero3/poseidon_magic_circle.png", // 魔法陣圖片可以換成這張
 		magicAnim: "meteor-anim", 
 		magicAudio: "hero3/atk3_cast.mp3" 
 	},

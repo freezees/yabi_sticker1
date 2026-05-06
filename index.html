@@ -54,9 +54,10 @@
 <audio id="sfx-meteor" src=""></audio>
 <audio id="sfx-magic-custom"></audio>
 
-<div id="game-over-screen" style="background-image: url('assets/bg_fail.png');">
+<!-- 加上 z-index: 9999 確保在最上層，並使用 location.reload() 安全重置遊戲 -->
+<div id="game-over-screen" style="background-image: url('assets/bg_fail.png'); z-index: 9999;">
     <h1 style="font-size: 50px; color: #ff7675; text-shadow: 0 0 20px black;">💀 再接再厲！ 💀</h1>
-    <button class="big-btn" onclick="restartFromFailure()">再次挑戰 ⚔️</button>
+    <button class="big-btn" onclick="location.reload()">再次挑戰 ⚔️</button>
 </div>
 
 <div id="victory-screen" style="background-image: url('assets/bg_victory.png');">
@@ -65,7 +66,8 @@
     <button class="big-btn" onclick="location.reload()">回村莊</button>
 </div>
 
-<div id="sticker-detail-modal" class="modal-overlay" onclick="this.style.display='none'; document.getElementById('detail-video').pause();">
+<!-- ✨ 修改處：加上 style="display:none; z-index: 9999;" 確保不會被大廳壓在下面 -->
+<div id="sticker-detail-modal" class="modal-overlay" style="display:none; z-index: 9999;" onclick="this.style.display='none'; document.getElementById('detail-video').pause();">
     <div class="modal-content" style="text-align:center;" onclick="event.stopPropagation()">
         <button class="close-btn" onclick="document.getElementById('sticker-detail-modal').style.display='none'; document.getElementById('detail-video').pause();">✕</button>
         <img id="detail-img" src="" style="width:200px; height:200px; object-fit:contain; margin-bottom:15px;">
@@ -126,12 +128,7 @@
     </div>
 </div>
 
-<div id="lobby-modal" class="modal-overlay" style="display:none; z-index: 9500;">
-    <div class="modal-content" style="max-width: 95%; width: 500px; text-align: center; padding: 20px; max-height: 85vh; overflow-y: auto;">
-        <button class="close-btn" onclick="closeLobbyModal()">X</button>
-        <div id="lobby-modal-content"></div>
-    </div>
-</div>
+<!-- ✨ 修改處：刪除重複的舊版 lobby-modal 程式碼，確保不會衝突 -->
 
 <div id="game-container">
     <div id="level-tag">第一關</div>
@@ -168,12 +165,19 @@
     </div>
 </div>
 
-<script src="data.js?v=3"></script>
-<script src="effects.js?v=3"></script>
-<script src="system.js?v=3"></script>
-<script src="lobby.js?v=3"></script>
-<script src="combat.js?v=3" defer></script>
-<script src="cloudsave.js?v=3"></script>
+<script src="data.js?v=5"></script>
+<script src="effects.js?v=5"></script>
+<script src="system.js?v=5"></script>
+<script src="lobby.js?v=5"></script>
+
+<script src="hero_edwin.js?v=5"></script>
+<script src="hero_mira.js?v=5"></script>
+<script src="hero_luna.js?v=5"></script>
+
+<script src="combat_flow.js?v=5"></script>
+<script src="combat_core.js?v=5"></script>
+
+<script src="cloudsave.js?v=5"></script>
 
 </body>
 </html>

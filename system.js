@@ -23,26 +23,14 @@ window.hpBuffAmt = 0;
 window.hintBuffAmt = 0;
 window.dmgBonus = [0, 0, 0]; 
 window.maxHints = 3;
-
+// 這段通常在 system.js 中
 function calcBuffs() {
-    let counts = { 'SSR': 0, 'SR': 0, 'R': 0, 'N': 0 };
-    let star5Counts = { 'SSR': 0, 'SR': 0, 'R': 0, 'N': 0 };
-
-    window.gachaData.collection.forEach(id => {
-        if(!enabledStickers.includes(id)) return;
-        let s = stickerDB.find(x => x.id === id);
-        if(s) {
-            counts[s.rarity]++;
-            if((window.gachaData.stars[id] || 0) >= 5) star5Counts[s.rarity]++;
-        }
-    });
-
-    window.critRate = 5 + (counts['SR'] * 1) + (star5Counts['SR'] * 1);
-    if(window.critRate > 100) window.critRate = 100;
-    window.hintBuffAmt = Math.floor(counts['R'] / 5) + (star5Counts['R'] * 1);
-    window.maxHints = 3 + window.hintBuffAmt;
-    window.extraCoinsBonus = Math.floor(counts['N'] / 10);
-    window.hpBuffAmt = counts['SSR'];
+    let rStickers = stickerDB.filter(s => s.rarity === 'R' && window.gachaData.collection.includes(s.id));
+    
+    // ★ 修改：從 5 改成 10，且刪除「滿星額外加1提示」的邏輯
+    window.hintBuffAmt = Math.floor(rStickers.length / 10); 
+    
+    // ... 其他加成計算 (SSR, SR, N) ...
 }
 
 function getHeroMaxHP() { return (heroes[selectedHeroIdx]?.baseHp || 5) + (window.hpBuffAmt || 0); }

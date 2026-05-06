@@ -1,0 +1,822 @@
+/* style.css - iPhone 排版修正版 */
+:root { 
+    --main-pink: #ffb6c1; 
+    --dark-pink: #f06292;
+    --btn-grad: linear-gradient(180deg, #ffffff 0%, #ffc1e3 100%);
+    --text-purple: #8e44ad;
+    --fairy-bg: radial-gradient(circle, #fff0f5 0%, #e6e6fa 40%, #ffb6c1 100%);
+    --fairy-glow: 0 0 20px rgba(255, 255, 255, 0.8), 0 0 30px rgba(162, 155, 254, 0.5);
+    --gold-glow: 0 0 15px #ffd700, 0 0 25px rgba(255, 215, 0, 0.5);
+    --gold-lightning: #ffd700;
+}
+
+/* 防止 iOS Safari 自動縮放表單元素 */
+input, button, select, textarea {
+    font-size: 16px !important;
+}
+
+button {
+    -webkit-tap-highlight-color: transparent;
+    touch-action: manipulation;
+}
+
+body { 
+    font-family: 'Segoe UI', "Microsoft JhengHei", sans-serif; 
+    background-image: url('assets/bg_main.png'); 
+    background-size: cover; background-position: center; background-attachment: fixed; background-repeat: no-repeat;
+    display: flex; flex-direction: column; align-items: center; justify-content: center;
+    min-height: 100vh; margin: 0; padding: 20px; overflow-y: auto; overflow-x: hidden; 
+    padding-bottom: env(safe-area-inset-bottom, 20px);
+}
+
+/* ★ 稀有度閃爍外框特效 */
+@keyframes rgbGlow {
+    0% { filter: drop-shadow(0 0 10px #ff4757) drop-shadow(0 0 20px #ff4757) brightness(1.1); }
+    33% { filter: drop-shadow(0 0 10px #2ecc71) drop-shadow(0 0 20px #2ecc71) brightness(1.1); }
+    66% { filter: drop-shadow(0 0 10px #3742fa) drop-shadow(0 0 20px #3742fa) brightness(1.1); }
+    100% { filter: drop-shadow(0 0 10px #ff4757) drop-shadow(0 0 20px #ff4757) brightness(1.1); }
+}
+.ssr-glow { animation: rgbGlow 1.5s linear infinite !important; border-radius: 50%; }
+
+@keyframes purpleGlow {
+    0% { filter: drop-shadow(0 0 10px #9b59b6) drop-shadow(0 0 20px #9b59b6) brightness(1.1); }
+    50% { filter: drop-shadow(0 0 15px #8e44ad) drop-shadow(0 0 30px #8e44ad) brightness(1.2); }
+    100% { filter: drop-shadow(0 0 10px #9b59b6) drop-shadow(0 0 20px #9b59b6) brightness(1.1); }
+}
+.sr-glow { animation: purpleGlow 1.5s linear infinite !important; border-radius: 15px; }
+
+@keyframes goldGlowObj {
+    0% { filter: drop-shadow(0 0 10px #f1c40f) drop-shadow(0 0 20px #f1c40f) brightness(1.1); }
+    50% { filter: drop-shadow(0 0 15px #f39c12) drop-shadow(0 0 30px #f39c12) brightness(1.2); }
+    100% { filter: drop-shadow(0 0 10px #f1c40f) drop-shadow(0 0 20px #f1c40f) brightness(1.1); }
+}
+.r-glow { animation: goldGlowObj 1.5s linear infinite !important; border-radius: 15px; }
+
+#start-screen {
+    position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+    background-image: url('assets/my_hero_bg.png'); background-size: cover; background-position: center; background-repeat: no-repeat;
+    display: flex; flex-direction: column; align-items: center; justify-content: center;
+    z-index: 5000; transition: opacity 1s;
+}
+.char-selector { display: flex; align-items: center; gap: 30px; margin-bottom: 30px; }
+.nav-arrow { background: none; border: none; color: white; font-size: 50px; cursor: pointer; text-shadow: 0 0 10px white; }
+#selected-char-preview { width: 180px; height: 180px; object-fit: contain; transition: all 0.3s; }
+.char-locked { filter: brightness(0) invert(1) opacity(0.3) !important; }
+#char-status-text { color: #ffb6c1; font-weight: bold; margin-top: 10px; font-size: 18px; text-align: center; margin-bottom: 20px; }
+
+#central-start-btn { background: var(--btn-grad); color: #ff1493; font-weight: bold; padding: 15px 50px; border-radius: 50px; font-size: 28px; border: 5px solid #ffffff; cursor: pointer; box-shadow: 0 5px 15px rgba(255, 20, 147, 0.5); }
+
+#game-container { 
+    width: 520px; min-height: 920px; 
+    background-size: cover; background-position: center; background-repeat: no-repeat;
+    border-radius: 50px; box-shadow: 0 20px 60px rgba(0, 0, 0, 0.6); 
+    position: relative; display: flex; flex-direction: column; align-items: center; 
+    padding: 25px; 
+    box-sizing: border-box; border: 10px solid #ffffff; outline: 2px solid #ffb6c1;
+    opacity: 0; transition: opacity 1s, background-image 0.5s ease; overflow: hidden;
+    padding-bottom: max(50px, env(safe-area-inset-bottom, 20px));
+}
+.game-show { opacity: 1 !important; }
+
+/* 大螢幕放大 */
+@media (min-width: 1200px) and (min-height: 900px) {
+    #game-container { transform: scale(1.2); transform-origin: center center; }
+}
+
+/* ===== 手機 RWD ===== */
+@media (max-width: 600px) {
+    body { 
+        padding: 0; 
+        margin: 0;
+        min-height: 100vh;
+        padding-bottom: env(safe-area-inset-bottom, 10px);
+    }
+
+    #game-container {
+        width: 100vw;
+        min-height: 100vh;
+        border-radius: 0;
+        border: none;
+        outline: none;
+        box-shadow: none;
+        padding: 12px 12px 20px 12px;
+        padding-bottom: max(30px, env(safe-area-inset-bottom, 30px));
+        box-sizing: border-box;
+        display: flex;
+        flex-direction: column;
+        justify-content: space-between;
+    }
+
+    #game-container h1 {
+        font-size: 20px;
+        margin: 10px 0 8px 0;
+    }
+
+    #battle-scene { 
+        height: auto; 
+        min-height: 180px;
+        margin-top: 100px !important; /* ★ 修正：手機版往下推 100px */
+        gap: 10px;
+    }
+
+    .actor-group {
+        width: 45%;
+    }
+
+    .character-img-hero { 
+        width: 85px; 
+        height: 85px; 
+    }
+
+    .character-img-dragon { 
+        max-width: 110px !important; 
+        width: 110px !important; 
+    }
+
+    .hp-hearts { 
+        font-size: 18px; 
+        margin-top: 5px;
+    }
+
+    #question-area { 
+        margin: 8px 0; 
+    }
+    
+    #question-box { 
+        width: 130px; 
+        height: 130px; 
+        border-width: 5px;
+    }
+
+    #global-audio-btn {
+        width: 40px;
+        height: 40px;
+        font-size: 20px;
+        bottom: -8px;
+        right: -8px;
+    }
+
+    #options-container {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 10px;
+        margin: 10px 0;
+        padding: 0 5px;
+    }
+
+    .option-btn { 
+        font-size: 14px; 
+        padding: 10px 5px;
+        white-space: normal;
+        word-break: break-word;
+        min-height: 55px;
+        line-height: 1.3;
+    }
+
+    #spelling-container {
+        margin-top: 5px;
+    }
+
+    #word-display { 
+        font-size: 22px; 
+        letter-spacing: 3px;
+        margin-bottom: 8px;
+        word-break: break-all;
+        text-align: center;
+    }
+
+    #letters-grid { 
+        display: flex;
+        flex-wrap: wrap;
+        justify-content: center;
+        gap: 8px;
+        max-width: 100%;
+        padding: 5px;
+    }
+
+    /* ★ 修正：手機版字母按鈕大小強制放大！ */
+    .letter-btn { 
+        width: auto !important; 
+        height: auto !important;
+        font-size: 32px !important;  
+        font-weight: bold !important;
+        padding: 8px 16px !important;
+        min-width: 55px !important;
+        border-radius: 10px !important;
+        flex-shrink: 0;
+    }
+
+    #spell-btn-container {
+        display: flex;
+        flex-wrap: wrap;
+        justify-content: center;
+        gap: 10px;
+        margin-top: 12px;
+    }
+
+    #spell-btn-container button {
+        padding: 8px 16px;
+        font-size: 14px;
+        white-space: nowrap;
+    }
+
+    #level-tag {
+        font-size: 12px;
+        padding: 5px 20px;
+    }
+
+    #top-controls {
+        top: 8px;
+        right: 12px;
+    }
+    
+    #settings-btn {
+        width: 36px;
+        height: 36px;
+        font-size: 18px;
+    }
+
+    #test-panel {
+        /* ★ 修正：測試面板也往下推一點，避免卡到最上面 */
+        top: 80px !important; 
+        left: 8px;
+        padding: 6px;
+        font-size: 11px;
+    }
+    
+    #test-panel button {
+        padding: 4px 6px;
+        font-size: 11px;
+    }
+}
+
+#level-tag { background: #a29bfe; color: white; padding: 8px 30px; border-radius: 0 0 20px 20px; font-weight: bold; position: absolute; top: 0; z-index: 5; }
+h1 { color: #ffffff; font-size: 28px; margin: 40px 0 15px 0; user-select: none; text-shadow: 2px 2px 4px rgba(0,0,0,0.8); }
+
+#top-controls { position: absolute; top: 15px; right: 20px; z-index: 100; }
+#settings-btn { background: rgba(255,255,255,0.9); border: 2px solid #ffb6c1; border-radius: 50%; width: 45px; height: 45px; cursor: pointer; font-size: 20px; display: flex; align-items: center; justify-content: center; box-shadow: 0 4px 0 #ffb6c1; }
+
+#test-panel {
+    display: none; position: absolute; top: 70px; left: 15px; 
+    background: rgba(255,255,255,0.9); padding: 8px; border-radius: 12px; 
+    border: 2px solid #a29bfe; box-shadow: 0 4px 10px rgba(0,0,0,0.3); z-index: 150;
+}
+
+/* ★ 修正：桌機版/平板版 往下推 80px */
+#battle-scene { display: flex; justify-content: space-around; width: 100%; height: 280px; align-items: flex-end; margin-top: 80px; z-index: 2; position: relative; }
+.actor-group { width: 45%; text-align: center; display: flex; flex-direction: column; align-items: center; justify-content: flex-end; }
+
+.character-img-hero { width: 150px; height: 150px; object-fit: contain; transition: 0.3s; position: relative; z-index: 500; }
+.character-img-dragon { object-fit: contain; filter: drop-shadow(0 5px 15px rgba(0,0,0,0.4)); transition: 0.5s; position: relative; z-index: 5; }
+
+.hp-hearts { font-size: 28px; font-weight: 900; color: white; margin-top: 10px; text-shadow: 2px 2px 4px black; }
+
+@keyframes floatUpDmg { 0% { transform: translateY(0) scale(1); opacity: 1; } 100% { transform: translateY(-80px) scale(1.5); opacity: 0; } }
+.dmg-text { position: absolute; color: #ff4757; font-size: 40px; font-weight: 900; text-shadow: 2px 2px 0 #fff, -2px -2px 0 #fff, 2px -2px 0 #fff, -2px 2px 0 #fff, 0 5px 10px rgba(0,0,0,0.5); z-index: 200; pointer-events: none; animation: floatUpDmg 1s ease-out forwards; }
+
+.character-img-hero:not(.casting-ult), .character-img-dragon:not(.dragon-shock) { animation: breatheAnim 2.5s ease-in-out infinite; }
+@keyframes breatheAnim { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-8px); } }
+
+#battle-msg { position: absolute; top: 10px; width: 100%; text-align: center; color: #ffd700; font-weight: bold; font-size: 22px; text-shadow: 2px 2px 4px black; pointer-events: none; opacity: 0; transition: 0.3s; z-index: 10; }
+#magic-meteor { position: absolute; top: -150px; right: 50px; width: 120px; opacity: 0; z-index: 100; pointer-events: none; }
+
+.atk-dash { animation: dashAtk 0.8s forwards !important; }
+@keyframes dashAtk { 0% { transform: translateX(0); } 30% { transform: translateX(180px) scale(1.1); } 100% { transform: translateX(0); } }
+.atk-jump { animation: jumpAtk 1s forwards !important; }
+@keyframes jumpAtk { 0% { transform: translate(0, 0); } 40% { transform: translate(80px, -140px) rotate(15deg); } 60% { transform: translate(180px, 0) rotate(0deg); } 100% { transform: translate(0, 0); } }
+.atk-spin { animation: spinAtk 0.8s forwards !important; }
+@keyframes spinAtk { 0% { transform: rotate(0); } 50% { transform: translateX(180px) rotate(360deg); } 100% { transform: translateX(0) rotate(0); } }
+.atk-glow { animation: castAnim 1.2s forwards !important; }
+@keyframes castAnim { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.3); filter: brightness(2); } }
+
+.dragon-atk { animation: dragonDashAtk 0.8s forwards !important; }
+@keyframes dragonDashAtk { 0% { transform: translateX(0); } 40% { transform: translateX(-220px) scale(1.2); } 100% { transform: translateX(0); } }
+
+.meteor-anim { animation: meteorFall 1s forwards; }
+@keyframes meteorFall { 0% { transform: translate(100px, -100px); opacity: 0; } 30% { opacity: 1; } 70% { transform: translate(-100px, 220px); opacity: 1; filter: brightness(2); } 100% { transform: translate(-100px, 220px) scale(1.5); opacity: 0; } }
+
+@keyframes bubblePassAnim { 0% { transform: translateX(0) scale(0.5); opacity: 0; } 20% { opacity: 1; transform: translateX(50px) scale(1.5); filter: brightness(1.2); } 50% { opacity: 1; transform: translateX(250px) scale(2.5); filter: brightness(1.5); } 100% { transform: translateX(500px) scale(3); opacity: 0; } }
+@keyframes waterBallShoot { 0% { transform: translateY(0) scale(0.5); opacity: 0; } 15% { opacity: 1; transform: translateY(-80px) scale(1); filter: brightness(1.5); } 100% { transform: translateY(-900px) scale(1.5); opacity: 0; } }
+@keyframes magicCircleAnim { 0% { transform: scale(0.1) rotate(0deg); opacity: 0; } 15% { opacity: 1; transform: scale(1.5) rotate(180deg); filter: brightness(1.2); } 85% { opacity: 1; transform: scale(2.8) rotate(1080deg); filter: brightness(1.5); } 100% { transform: scale(3.5) rotate(1440deg); opacity: 0; } }
+
+.hurt-shake { animation: hurtShake 0.4s forwards !important; filter: brightness(1.5) sepia(0.5) !important; }
+@keyframes hurtShake { 0%, 100% { transform: translateX(0); } 25% { transform: translateX(-10px); } 75% { transform: translateX(10px); } }
+
+#question-area { position: relative; margin: 15px 0; z-index: 2; display: flex; flex-direction: column; align-items: center; }
+#question-box { width: 190px; height: 190px; border: 8px solid #ffc1e3; border-radius: 35px; background: white; display: flex; align-items: center; justify-content: center; overflow: hidden; box-shadow: 0 10px 20px rgba(0,0,0,0.3); }
+#question-img { max-width: 90%; max-height: 90%; object-fit: contain; }
+#global-audio-btn { position: absolute; bottom: -5px; right: -5px; width: 50px; height: 50px; background: #a29bfe; border: 3px solid white; border-radius: 50%; cursor: pointer; font-size: 24px; display: flex; align-items: center; justify-content: center; box-shadow: 0 4px 8px rgba(0,0,0,0.3); z-index: 20; }
+
+#options-container { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; width: 100%; padding-bottom: 20px; margin-top: auto; z-index: 2; }
+.option-btn { background: var(--btn-grad); border: 2px solid #ffffff; border-radius: 50px; color: var(--text-purple); padding: 15px; font-size: 18px; font-weight: bold; cursor: pointer; box-shadow: 0 4px 0 #f48fb1; }
+
+#spelling-container { display: none; flex-direction: column; align-items: center; width: 100%; padding-bottom: 10px; margin-top: auto; z-index: 10; }
+#word-display { font-size: 32px; font-weight: bold; color: #ffffff; letter-spacing: 5px; border-bottom: 4px dashed #ffb6c1; padding: 0 10px; text-shadow: 2px 2px 4px rgba(0,0,0,0.8); margin-bottom: 15px; min-height: 40px; }
+#letters-grid { display: flex; flex-wrap: wrap; gap: 12px; justify-content: center; width: 100%; max-width: 420px; padding: 5px; }
+
+/* ★ 修正：全域字母按鈕強制設定字體大小與顏色 */
+.letter-btn { 
+    width: 54px; 
+    height: 54px; 
+    background: white; 
+    border: 3px solid #ffb6c1; 
+    border-radius: 12px; 
+    color: #ff4757 !important;  /* 強制變紅 */
+    font-size: 32px !important; /* 強制放大 */
+    font-weight: bold !important; 
+    cursor: pointer; 
+    box-shadow: 0 4px 0 #ffb6c1; 
+    display: flex; 
+    align-items: center; 
+    justify-content: center; 
+    text-transform: lowercase; 
+}
+.letter-correct { background: #eee !important; color: #ccc !important; box-shadow: none !important; transform: translateY(3px); pointer-events: none; }
+
+.modal-overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.85); z-index: 2000; align-items: center; justify-content: center; }
+#sticker-detail-modal { z-index: 9800; }
+.modal-content { 
+    width: 420px; max-height: 85vh; 
+    background: linear-gradient(135deg, #ffffff 0%, #fff0f5 50%, #ffe6f0 100%);
+    border-radius: 35px; border: 8px solid #ffb6c1; padding: 30px 25px; position: relative; overflow-y: auto; 
+    box-shadow: 0 0 30px rgba(255, 182, 193, 0.8), inset 0 0 20px rgba(255, 255, 255, 1);
+}
+.close-btn { 
+    position: absolute; 
+    top: 15px; 
+    right: 15px; 
+    cursor: pointer; 
+    border: none; 
+    background: #ff8da1; 
+    color: white; 
+    width: 35px; 
+    height: 35px; 
+    border-radius: 50%; 
+    font-weight: bold; 
+    z-index: 10; 
+}
+#victory-screen, #game-over-screen { 
+    position: fixed; top: 0; left: 0; width: 100%; height: 100%; 
+    background: rgba(0,0,0,0.85); display: none; flex-direction: column; align-items: center; justify-content: center; z-index: 3000; text-align: center; 
+    background-size: cover; background-position: center; background-repeat: no-repeat;
+}
+.big-btn { padding: 15px 50px; font-size: 24px; border-radius: 50px; background: #ff69b4; color: white; border: none; cursor: pointer; margin-top: 30px; box-shadow: 0 5px 15px rgba(255, 20, 147, 0.5); border: 3px solid white; transition: 0.2s; }
+
+/* 大廳相關樣式 */
+#gacha-lobby {
+    display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; 
+    background: url('assets/bg_main.png') center/cover no-repeat; z-index: 6000; 
+    flex-direction: column; padding: 20px; box-sizing: border-box; overflow-y: auto;
+}
+.lobby-header { display: flex; justify-content: space-between; align-items: center; background: rgba(255,255,255,0.8); padding: 15px 30px; border-radius: 30px; box-shadow: 0 5px 15px rgba(0,0,0,0.2); border: 3px solid #ffb6c1; margin-bottom: 20px; }
+.currency-box { display: flex; gap: 20px; font-size: 22px; font-weight: bold; }
+.currency-coin { color: #f39c12; text-shadow: 1px 1px 0 #fff; }
+.currency-dust { color: #8e44ad; text-shadow: 1px 1px 0 #fff; }
+
+.lobby-tabs { display: flex; justify-content: center; gap: 15px; margin-bottom: 20px; flex-wrap: wrap; }
+.tab-btn { padding: 12px 25px; font-size: 18px; font-weight: bold; background: white; border: 3px solid #ffb6c1; border-radius: 20px; cursor: pointer; color: #f06292; transition: 0.3s; }
+.tab-btn.active { background: #ffb6c1; color: white; box-shadow: 0 5px 10px rgba(255,182,193,0.5); transform: scale(1.05); }
+
+.lobby-content { flex: 1; background: rgba(255,255,255,0.85); border-radius: 30px; border: 5px solid white; padding: 20px; box-shadow: inset 0 0 20px rgba(0,0,0,0.1); display: none; overflow-y: auto; }
+.lobby-content.active { display: flex; flex-direction: column; align-items: center; }
+
+.sticker-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(90px, 1fr)); gap: 12px; width: 100%; }
+
+/* 修改：移除 aspect-ratio，改用 padding 撐開高度，並加上 margin-bottom 防止重疊 */
+.sticker-card { 
+    background: #fff; 
+    border-radius: 12px; 
+    display: flex; 
+    align-items: center; 
+    justify-content: center; 
+    position: relative; 
+    cursor: pointer; 
+    transition: 0.3s; 
+    overflow: hidden; 
+    flex-direction: column; 
+    padding: 15px 5px 25px 5px; /* 上、左、下、右的內距，下方留空間給星星和標籤 */
+    margin-bottom: 10px; /* 確保每排下方有間距 */
+    min-height: 110px; /* 確保最小高度 */
+}
+
+.sticker-card:hover { transform: scale(1.05); }
+.sticker-card img { width: 85%; max-height: 85%; object-fit: contain; }
+.sticker-id { position: absolute; top: 4px; left: 4px; font-size: 11px; font-weight: bold; background: rgba(255,255,255,0.9); padding: 2px 6px; border-radius: 6px; z-index: 5; }
+.sticker-locked { filter: brightness(0) opacity(0.2); }
+.card-stars { position: absolute; bottom: 20px; left: 50%; transform: translateX(-50%); font-size: 12px; letter-spacing: -2px; color: #ffd700; text-shadow: 1px 1px 2px #000; z-index: 5; white-space: nowrap; }
+
+@keyframes rainbowGlow { 0%{border-color:#ff0000; box-shadow:0 0 15px #ff0000;} 33%{border-color:#00ff00; box-shadow:0 0 15px #00ff00;} 66%{border-color:#0000ff; box-shadow:0 0 15px #0000ff;} 100%{border-color:#ff0000; box-shadow:0 0 15px #ff0000;} }
+.rarity-SSR { border: 4px solid transparent; animation: rainbowGlow 2s linear infinite; background: linear-gradient(135deg, #fff 0%, #ffeaa7 100%); }
+.rarity-SR { border: 4px solid #9b59b6; box-shadow: 0 0 10px #9b59b6; background: linear-gradient(135deg, #fff 0%, #f4eaff 100%); }
+.rarity-R { border: 4px solid #f1c40f; box-shadow: 0 0 10px #f1c40f; background: linear-gradient(135deg, #fff 0%, #fff8dc 100%); }
+.rarity-N { border: 3px solid #ecf0f1; background: linear-gradient(135deg, #fff 0%, #f0f3f4 100%); }
+
+.rarity-badge { position: absolute; bottom: 2px; right: 4px; font-size: 12px; font-weight: 900; font-style: italic; text-shadow: 1px 1px 0 #fff; z-index: 5; }
+.badge-SSR { color: #ff4757; } .badge-SR { color: #8e44ad; } .badge-R { color: #d35400; } .badge-N { color: #7f8c8d; }
+
+.wall-grid { display: flex; justify-content: center; gap: 15px; flex-wrap: margin-top: 20px; }
+.wall-slot { width: 100px; height: 100px; border: 4px dashed #ffb6c1; border-radius: 20px; display: flex; align-items: center; justify-content: center; background: rgba(255,255,255,0.5); cursor: pointer; position: relative; }
+.wall-slot img { width: 90%; filter: drop-shadow(0 5px 10px rgba(0,0,0,0.2)); }
+
+.gacha-pull-btn { background: linear-gradient(180deg, #ffd700, #ff8c00); border: 4px solid white; color: white; font-size: 20px; font-weight: bold; padding: 12px 30px; border-radius: 50px; cursor: pointer; box-shadow: 0 5px 15px rgba(255,140,0,0.5); transition: 0.2s; }
+.gacha-pull-btn:active { transform: scale(0.95); }
+
+#buff-panel { background: rgba(255,255,255,0.9); padding: 15px; border-radius: 15px; border: 3px solid #ffb6c1; margin-bottom: 20px; width: 90%; text-align: center; font-weight: bold; color: #8e44ad; }
+
+@keyframes waveTsunamiAnim { 
+    0% { transform: translateX(0) scale(0.2); opacity: 0; } 
+    20% { opacity: 1; transform: translateX(50px) scale(1); filter: brightness(1.2); } 
+    60% { opacity: 1; transform: translateX(300px) scale(2.5); filter: brightness(1.5); } 
+    100% { transform: translateX(600px) scale(4); opacity: 0; filter: brightness(1); } 
+}
+
+/* ★ 艾德恩技能特效 */
+.hero-front { z-index: 1000 !important; }
+.dragon-front { z-index: 950 !important; }
+.character-img-hero.casting-ult { animation: none !important; }
+
+@keyframes magicCircleScaleGlow {
+    0% { transform: translate(-50%, 0) scale(0.1) rotate(0deg); opacity: 0; filter: brightness(1); }
+    15% { opacity: 1; transform: translate(-50%, 0) scale(1.1) rotate(180deg); filter: brightness(1.5); }
+    85% { opacity: 1; transform: translate(-50%, 0) scale(1.1) rotate(1080deg); filter: brightness(2); }
+    100% { transform: translate(-50%, 0) scale(1.2) rotate(1440deg); opacity: 0; filter: brightness(1); }
+}
+.ult-magic-circle {
+    position: absolute; bottom: -50px; left: 50%; transform: translateX(-50%);
+    width: 300px; height: 300px; 
+    z-index: 110 !important;
+    animation: magicCircleScaleGlow 3s ease-in-out forwards;
+    pointer-events: none;
+}
+
+@keyframes heroOpenEye {
+    0% { transform: scale(1); }
+    50% { transform: scale(1.2); filter: brightness(1.5); }
+    100% { transform: scale(1); }
+}
+.hero-open-eye { animation: heroOpenEye 0.4s ease-out; }
+
+@keyframes goldLightningStrike {
+    0% { opacity: 0; } 
+    5%, 15%, 25%, 35% { opacity: 1; filter: brightness(2); }
+    10%, 20%, 30% { opacity: 0.3; }
+    50% { opacity: 1; transform: scaleY(1.1); }
+    100% { opacity: 0; transform: scaleY(0.8) translateY(100px); }
+}
+.gold-lightning {
+    position: absolute; top: 100px; left: var(--lx);
+    width: 80px; height: 250px; background-size: contain; background-repeat: no-repeat;
+    z-index: 109;
+    pointer-events: none;
+    animation: goldLightningStrike 0.6s ease-out forwards;
+    animation-delay: var(--ldelay);
+    filter: drop-shadow(0 0 10px var(--gold-lightning));
+}
+
+@keyframes giantSwordFallUpdate {
+    0% { transform: translateY(-800px) scale(0.8) rotate(0deg); opacity: 0; }
+    20% { opacity: 1; }
+    90% { transform: translateY(0) scale(1.2) rotate(0deg); opacity: 1; } 
+    100% { transform: translateY(0) scale(1.2) rotate(0deg); opacity: 1; } 
+}
+.giant-sword-with-effects {
+    position: absolute; bottom: 0px; right: 50px; 
+    width: 150px; 
+    z-index: 115; pointer-events: none;
+    animation: giantSwordFallUpdate 0.8s cubic-bezier(.5,0,1,1) forwards;
+    transform-origin: bottom center;
+    filter: drop-shadow(0 0 15px var(--gold-lightning)) drop-shadow(0 0 30px #ffffff);
+}
+.sword-lightning-wraps {
+    position: absolute; top: -50px; left: -25px; width: 150%; height: 150%;
+    background-size: contain; background-repeat: no-repeat; background-position: center;
+    animation: swordLightningWraps 0.3s ease-in infinite;
+    pointer-events: none; z-index: -1; 
+}
+@keyframes swordLightningWraps {
+    0% { opacity: 0; } 50% { opacity: 1; filter: brightness(1.5); } 100% { opacity: 0; }
+}
+
+@keyframes goldExplosion {
+    0% { transform: scale(0.1); opacity: 0; }
+    15% { transform: scale(3.5); opacity: 1; filter: brightness(2); }
+    50% { transform: scale(4.5); opacity: 1; filter: brightness(1.5); }
+    100% { transform: scale(5); opacity: 0; filter: brightness(1); }
+}
+.gold-explosion-fx {
+    position: absolute; 
+    bottom: 20px; 
+    right: 20px;
+    width: 300px; 
+    height: 300px; 
+    z-index: 120; 
+    pointer-events: none;
+    animation: goldExplosion 1s ease-out forwards;
+}
+
+@keyframes dragonShock {
+    0% { filter: brightness(1); }
+    5%, 25%, 45% { filter: brightness(3) sepia(1) saturate(10); transform: translate(-15px, -15px); }
+    15%, 35%, 55% { filter: brightness(2) sepia(1) saturate(8); transform: translate(15px, 15px); }
+    80% { filter: brightness(1.5) sepia(1) saturate(5); transform: translate(0, 0); }
+    100% { filter: brightness(1); }
+}
+.dragon-shock { animation: dragonShock 1s ease-out !important; }
+
+@keyframes severeShake {
+    0% { transform: translate(0, 0) scale(1); }
+    10% { transform: translate(-20px, -20px) scale(1.02); }
+    20% { transform: translate(20px, 20px) scale(1.02); }
+    30% { transform: translate(-20px, 20px) scale(1.02); }
+    40% { transform: translate(20px, -20px) scale(1.02); }
+    50% { transform: translate(-10px, -10px) scale(1.01); }
+    60% { transform: translate(10px, 10px) scale(1.01); }
+    70% { transform: translate(-10px, 10px) scale(1.01); }
+    80% { transform: translate(10px, -10px) scale(1.01); }
+    90% { transform: translate(0px, 0px) scale(1); }
+    100% { transform: translate(0, 0) scale(1); }
+}
+.severe-shake { animation: severeShake 0.8s cubic-bezier(.36,.07,.19,.97) both; }
+
+@keyframes lightningParticle {
+    0% { transform: translate(0, 0) scale(1); opacity: 1; }
+    100% { transform: translate(var(--pdx), var(--pdy)) rotate(360deg) scale(0); opacity: 0; }
+}
+.lightning-particle {
+    position: absolute; width: 8px; height: 8px; background: var(--gold-lightning); 
+    box-shadow: 0 0 5px var(--gold-lightning); border-radius: 50%;
+    pointer-events: none; z-index: 125;
+    animation: lightningParticle 1.2s ease-out forwards;
+}
+
+/* 手機版大廳修正 */
+@media (max-width: 600px) {
+    .lobby-header {
+        flex-direction: column;
+        gap: 10px;
+        padding: 12px;
+    }
+    .lobby-header > div:first-child {
+        font-size: 20px !important;
+    }
+    .currency-box {
+        justify-content: center;
+        gap: 15px;
+        font-size: 16px;
+    }
+    .lobby-tabs {
+        gap: 8px;
+    }
+    .tab-btn {
+        padding: 8px 15px;
+        font-size: 14px;
+    }
+    .sticker-grid {
+        grid-template-columns: repeat(auto-fill, minmax(75px, 1fr));
+        gap: 8px;
+    }
+    .wall-slot {
+        width: 80px;
+        height: 80px;
+    }
+    .modal-content {
+        width: 90%;
+        padding: 20px 15px;
+    }
+}
+
+/* 彈窗內貼紙網格 */
+.sticker-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(100px, 1fr)); 
+    gap: 20px; 
+    width: 100%;
+    padding: 10px; 
+    box-sizing: border-box; 
+}
+
+.wall-grid {
+    display: flex;
+    justify-content: center;
+    gap: 15px;
+    flex-wrap: wrap;
+}
+
+.wall-slot {
+    width: 90px;
+    height: 90px;
+    border: 4px dashed #ffb6c1;
+    border-radius: 20px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: rgba(255,255,255,0.5);
+    cursor: pointer;
+}
+
+.wall-slot img {
+    width: 85%;
+}
+
+.gacha-pull-btn {
+    background: linear-gradient(180deg, #ffd700, #ff8c00);
+    border: 3px solid white;
+    color: white;
+    font-size: 18px;
+    font-weight: bold;
+    padding: 10px 25px;
+    border-radius: 50px;
+    cursor: pointer;
+}
+
+/* ============================================
+   戰鬥系統與寶箱特效專用動畫 (從 JS 遷移)
+   ============================================ */
+@keyframes petAnxiousShake {
+    0%, 100% { transform: scale(1.3) rotate(0deg); }
+    25% { transform: scale(1.3) rotate(-15deg) translateX(-2px); }
+    75% { transform: scale(1.3) rotate(15deg) translateX(2px); }
+}
+@keyframes petBounceInPlace {
+    0%, 100% { transform: translateY(0); }
+    50% { transform: translateY(-25px) scale(1.1); }
+}
+@keyframes wrongLetterShake {
+    0%, 100% { transform: translateX(0); background: white; }
+    25%, 75% { transform: translateX(-5px); background: #f1f2f6; }
+    50% { transform: translateX(5px); background: #f1f2f6; }
+}
+@keyframes redLightPulse {
+    0%, 100% { transform: scale(1); box-shadow: 0 0 10px #ff4757; background: #ffcccc; border-color: #ff4757; color: #d63031; }
+    50% { transform: scale(1.25); box-shadow: 0 0 30px #ff4757; background: #ff4757; border-color: #c0392b; color: white; }
+}
+@keyframes dragonBlockedAtk {
+    0% { transform: translateX(0) scale(1); }
+    15% { transform: translateX(-100px) scale(1.15); }
+    85% { transform: translateX(-100px) scale(1.15); }
+    100% { transform: translateX(0) scale(1); }
+}
+@keyframes rageFullPulse {
+    0%, 100% { background-color: #ff4757; box-shadow: 0 0 5px #ff4757; }
+    50% { background-color: #ffcccc; box-shadow: 0 0 20px #ff4757, 0 0 40px #ff4757; }
+}
+@keyframes legoExplodeAndHoming {
+    0% { transform: translate(0, 0) scale(0) rotate(0deg); opacity: 0; }
+    20% { transform: translate(var(--burstX), var(--burstY)) scale(var(--ls)) rotate(var(--burstR)); opacity: 1; filter: drop-shadow(0 0 10px rgba(255,0,0,0.8)); }
+    50% { transform: translate(var(--burstX), var(--burstY)) scale(var(--ls)) rotate(calc(var(--burstR) + 90deg)); opacity: 1; filter: drop-shadow(0 0 20px #ff4757); }
+    100% { transform: translate(var(--ldx), var(--ldy)) scale(0.2) rotate(calc(var(--burstR) + 360deg)); opacity: 0; filter: blur(2px); }
+}
+@keyframes superShakeChest {
+    0%, 100% { transform: translateX(0) scale(1.2); }
+    25% { transform: translateX(-15px) scale(1.2) rotate(-8deg); }
+    50% { transform: translateX(15px) scale(1.2) rotate(8deg); }
+    75% { transform: translateX(-15px) scale(1.2) rotate(-8deg); }
+}
+
+/* ========================================= */
+/* ★ 樂高龍大招專屬動畫區 ★ */
+/* ========================================= */
+
+/* 1. 樂高龍與畫面的劇烈震動 */
+.severe-shake {
+    animation: severeShake 0.1s infinite !important;
+}
+
+@keyframes severeShake {
+    0% { transform: translate(3px, 2px) rotate(0deg); }
+    10% { transform: translate(-2px, -3px) rotate(-1deg); }
+    20% { transform: translate(-4px, 0px) rotate(1deg); }
+    30% { transform: translate(0px, 3px) rotate(0deg); }
+    40% { transform: translate(2px, -2px) rotate(1deg); }
+    50% { transform: translate(-2px, 3px) rotate(-1deg); }
+    60% { transform: translate(-4px, 2px) rotate(0deg); }
+    70% { transform: translate(3px, 2px) rotate(-1deg); }
+    80% { transform: translate(-2px, -2px) rotate(1deg); }
+    90% { transform: translate(3px, 3px) rotate(0deg); }
+    100% { transform: translate(2px, -3px) rotate(-1deg); }
+}
+
+/* 2. 樂高積木爆炸並飛向畫面的特效 */
+@keyframes legoExplodeAndHoming {
+    0% { 
+        transform: translate(0, 0) scale(0) rotate(0deg); 
+        opacity: 1; 
+    }
+    30% { 
+        /* 瞬間往四面八方炸開 */
+        transform: translate(var(--burstX), var(--burstY)) scale(var(--ls)) rotate(var(--burstR)); 
+        opacity: 1; 
+    }
+    100% { 
+        /* 飛向畫面左側並消失 */
+        transform: translate(var(--ldx), var(--ldy)) scale(0.5) rotate(720deg); 
+        opacity: 0; 
+    }
+}
+
+/* ========================================= */
+/* ★ 樂高龍大招：二階警告與放射暴風 ★ */
+/* ========================================= */
+
+/* 1. 怒氣條危險閃爍警報 */
+@keyframes rageBlink {
+    0%, 100% { opacity: 1; box-shadow: 0 0 20px #ff4757, 0 0 40px #ff4757 inset; border-color: #ff4757; transform: scale(1); }
+    50% { opacity: 0.5; box-shadow: 0 0 5px #ff4757; border-color: #fff; transform: scale(1.05); }
+}
+
+/* 2. 樂高龍生氣原地跳腳 */
+.dragon-stomp-anim {
+    animation: dragonStomp 0.15s infinite alternate ease-in-out !important;
+    filter: drop-shadow(0 0 20px rgba(255, 0, 0, 0.8)); /* 加上紅色怒氣光暈 */
+}
+@keyframes dragonStomp {
+    0% { transform: translateY(0) scale(1.05); }
+    100% { transform: translateY(-30px) scale(1); } /* 快速上下跳動 */
+}
+
+/* 3. 從嘴巴發射的放射狀積木風暴 */
+@keyframes legoRadialShoot {
+    0% { 
+        /* 起點：龍的嘴巴附近 */
+        transform: translate(var(--burstX), var(--burstY)) scale(0) rotate(0deg); 
+        opacity: 0; 
+    }
+    10% {
+        transform: translate(var(--burstX), var(--burstY)) scale(var(--ls)) rotate(var(--burstR)); 
+        opacity: 1;
+    }
+    100% { 
+        /* 終點：畫面左側的英雄區域（扇形散開） */
+        transform: translate(var(--ldx), var(--ldy)) scale(var(--ls)) rotate(720deg); 
+        opacity: 0; 
+    }
+}
+
+/* ========================================= */
+/* ★ 樂高龍大招：集氣光球特效 ★ */
+/* ========================================= */
+
+.lego-charge-ball {
+    position: absolute;
+    /* 💡 根據你的嘴巴座標 (40, 20) 微調出的光球中心點 */
+    top: 170px;  /* 150px (基準) + 20px (mouthStartY) */
+    right: 240px; /* 200px (基準) + 40px (mouthStartX) */
+    
+    /* 起始大小與定位中心 */
+    width: 0px; 
+    height: 0px;
+    transform: translate(50%, -50%) rotate(0deg); 
+    transform-origin: center center;
+    
+    z-index: 999; /* 在積木 (200) 下面，龍圖片上面 */
+    pointer-events: none;
+    
+    /* 新增：加上發光濾鏡，讓光球看起來更炫 */
+    filter: drop-shadow(0 0 15px rgba(255, 255, 255, 0.9)) blue(1.2);
+    
+    /* 執行集氣動畫：持續 2 秒 */
+    animation: legoChargeAnim 2s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+}
+
+@keyframes legoChargeAnim {
+    0% { 
+        width: 0px; height: 0px; 
+        opacity: 0; 
+        transform: translate(50%, -50%) rotate(0deg); 
+    }
+    15% { 
+        width: 50px; height: 50px; /* 快速長出基礎大小 */
+        opacity: 1; 
+    }
+    80% { 
+        /* 緩慢變大並瘋狂旋轉，吸取周圍能量 */
+        width: 120px; height: 120px; 
+        transform: translate(50%, -50%) rotate(1080deg); 
+        filter: drop-shadow(0 0 25px rgba(255, 255, 255, 1)) brightness(1.5);
+    }
+    90% {
+        /* 💡 噴射前 0.2 秒突然猛烈收縮，準備爆發 */
+        width: 20px; height: 20px;
+        opacity: 1;
+        transform: translate(50%, -50%) rotate(1440deg);
+    }
+    100% { 
+        /* 瞬間消失 (噴射開始) */
+        width: 0px; height: 0px; 
+        opacity: 0; 
+        transform: translate(50%, -50%) rotate(1800deg);
+    }
+}
+
+/* 治療特效動畫 */
+@keyframes floatUpHeal {
+    0% { transform: translateY(0) scale(1); opacity: 1; color: #2ecc71; }
+    100% { transform: translateY(-60px) scale(1.3); opacity: 0; color: #a8e6cf; }
+}
+.heal-text {
+    position: absolute;
+    font-weight: bold;
+    pointer-events: none;
+    z-index: 800;
+    animation: floatUpHeal 1s ease-out forwards;
+}
