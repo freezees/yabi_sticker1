@@ -104,7 +104,6 @@ function startGame() {
 }
 
 // ========== 血量與死亡判定 ==========
-// ========== 血量與死亡判定 ==========
 function updateHP() {
     let pHPText = document.getElementById('prince-hp'); 
     let dHPText = document.getElementById('dragon-hp');
@@ -182,27 +181,7 @@ function checkChoice(isCorrect, selectedWord = null) {
         dHP -= dmg;
         window.pendingDamageForFeedback = dmg;
 
-        if (selectedHeroIdx === 2) {
-            if (skillIdx === 1) {
-                let beforeHP = pHP;
-                pHP = Math.min(typeof getHeroMaxHP === 'function' ? getHeroMaxHP() : 5, pHP + 1);
-                if (beforeHP < pHP) {
-                    if (typeof showBattleMsg === 'function') showBattleMsg("🧜‍♀️ 治癒之浪！回復 1 點生命！");
-                    try { playSfx(`${heroData.folder}/heal.mp3`, 0.7); } catch(e){}
-                    if(typeof showHealEffect === 'function') showHealEffect(true, 1);
-                    updateHP();
-                }
-            } else if (skillIdx === 2) {
-                let beforeHP = pHP;
-                pHP = Math.min(typeof getHeroMaxHP === 'function' ? getHeroMaxHP() : 5, pHP + 2);
-                if (beforeHP < pHP) {
-                    if (typeof showBattleMsg === 'function') showBattleMsg("🌊 海神之怒：深淵十連爆！");
-                    try { playSfx(`${heroData.folder}/heal.mp3`, 0.7); } catch(e){}
-                    if(typeof showHealEffect === 'function') showHealEffect(true, 2);
-                    updateHP();
-                }
-            }
-        }
+        // 🐛 這裡原本有一大段 `if (selectedHeroIdx === 2)` 的露娜補血舊邏輯，已經被徹底刪除！
 
         window.studyLog[currentWord] = window.studyLog[currentWord] || {success: 0, fail: 0};
         if (!window.hasLoggedMistake) window.studyLog[currentWord].success++;
@@ -331,7 +310,6 @@ function checkChoice(isCorrect, selectedWord = null) {
     document.head.appendChild(style);
 })();
 
-// ========== 5. 離開遊戲返回大廳 ==========
 // ========== 5. 離開遊戲返回大廳 ==========
 window.quitToMain = function() {
     // 1. 重置戰鬥狀態鎖

@@ -26,7 +26,6 @@ window.HeroRegistry['hero3'] = {
         @keyframes fadeOutAll { 100% {opacity: 0;} }
 
         /* 🌟 奇蹟復活專屬動畫 🌟 */
-        /* [新] 海馬在原地的慌張上下跳跳 */
         @keyframes seahorsePanicJump { 
             0% { transform: translateY(0) rotate(0deg); } 
             25% { transform: translateY(-25px) rotate(-10deg); } 
@@ -34,25 +33,21 @@ window.HeroRegistry['hero3'] = {
             75% { transform: translateY(-25px) rotate(10deg); } 
             100% { transform: translateY(0) rotate(0deg); } 
         }
-        /* [新] 驚嘆號彈出 */
         @keyframes exclamationPop { 
             0% { transform: scale(0) translateY(10px); opacity: 0; } 
             20% { transform: scale(1.3) translateY(-5px); opacity: 1; } 
             80% { transform: scale(1) translateY(0); opacity: 1; } 
             100% { transform: scale(0.8) translateY(-15px); opacity: 0; } 
         }
-        /* 海馬在身上的跳躍動畫 */
         @keyframes seahorseBouncy { 
             0% { transform: translateY(-40px) scale(0.9, 1.1); } 
             100% { transform: translateY(0px) scale(1.15, 0.85); } 
         }
-        /* 金色光條 */
         @keyframes shineFlyUp { 
             0% { transform: translateY(0) scaleY(0.8); opacity: 0; } 
             15% { opacity: 1; filter: drop-shadow(0 0 15px gold) brightness(1.5); } 
             100% { transform: translateY(-600px) scaleY(3); opacity: 0; } 
         }
-        /* 露娜開心的跳跳跳 */
         @keyframes lunaHappyJump {
             0%, 100% { transform: translateY(0); }
             50% { transform: translateY(-30px); }
@@ -99,7 +94,10 @@ window.HeroRegistry['hero3'] = {
         // =====================================
         // 🌟 小海馬奇蹟復活演出 (Panic -> Teleport -> Revive)
         // =====================================
-        if (typeof pHP !== 'undefined' && pHP <= 0 && !window.seahorseRevived) {
+        // 🐛 修復：必須判斷露娜(ID:3)的星數是否 >= 5，才允許觸發復活！
+        let isLunaMaxStar = window.gachaData && window.gachaData.stars && window.gachaData.stars[selectedHeroIdx] >= 5;
+
+        if (typeof pHP !== 'undefined' && pHP <= 0 && !window.seahorseRevived && isLunaMaxStar) {
             window.seahorseRevived = true;
             
             // 🌟 瞬間補滿 3 滴血，穩定遊戲判定
@@ -116,33 +114,25 @@ window.HeroRegistry['hero3'] = {
 
                 // 🌟 階段一：原地慌張跳跳 ＋ 驚嘆號
                 if (originalPet) {
-                    // 原地上下直跳
                     originalPet.style.animation = "seahorsePanicJump 0.4s 3 ease-in-out"; 
                     
-                    // 生出粉紅驚嘆號
                     let exMark = document.createElement('div');
                     exMark.innerText = "！";
-                    // 定位在 originalPet 的頭頂
                     exMark.style.cssText = 'position:absolute; bottom:110px; left:20px; font-size:40px; font-weight:bold; color:#ff66b2; text-shadow:0 0 10px #fff, 2px 2px 0 #fff; z-index:900; animation: exclamationPop 1s ease-out forwards; pointer-events:none;';
-                    // 必須貼在與 originalPet 同一個父節點下
                     if(originalPet.parentElement) originalPet.parentElement.appendChild(exMark);
                     
-                    setTimeout(() => exMark.remove(), 1000); // 1秒後移除驚嘆號
+                    setTimeout(() => exMark.remove(), 1000);
                 }
 
                 // 🌟 階段二：延遲 1.5 秒後，順移到主人身上並變大
                 setTimeout(() => {
-                    // 隱藏原本的原地寵物
                     if (originalPet) originalPet.style.opacity = '0';
 
-                    // 生出變大的跳躍海馬
                     let seahorse = document.createElement('img');
-                    seahorse.src = `${this.folder}/seahorse.png`; // Verbatim: image_d27b5d.png -> seahorse.png
-                    // 變大到 width: 90px，並定位在露娜身上 (verbatim instructions for pos were top:120px; left:45px)
+                    seahorse.src = `${this.folder}/seahorse.png`; 
                     seahorse.style.cssText = 'position:absolute; top:120px; left:45px; width:90px; z-index:910; animation: seahorseBouncy 0.3s infinite alternate ease-in; pointer-events:none; transition: all 0.5s;';
                     battleScene.appendChild(seahorse);
 
-                    // 播放啾啾叫 (移到這邊播放更貼切)
                     try { 
                         let jiuSfx = new Audio(`${this.folder}/jiu.mp3`); 
                         jiuSfx.volume = window.audioSettings ? window.audioSettings.sfx : 1.0; 
@@ -155,14 +145,12 @@ window.HeroRegistry['hero3'] = {
                         
                         seahorse.style.filter = 'drop-shadow(0 0 35px gold) brightness(1.5)';
 
-                        // 播放治癒音效
                         try { 
                             let healSfx = new Audio(`${this.folder}/heal.mp3`); 
                             healSfx.volume = window.audioSettings ? window.audioSettings.sfx : 0.8; 
                             healSfx.play().catch(e=>{}); 
                         } catch(e){}
                         
-                        // 金條噴射
                         let shineInterval = setInterval(() => {
                             for(let i=0; i<2; i++) {
                                 let s = document.createElement('img');
@@ -180,18 +168,15 @@ window.HeroRegistry['hero3'] = {
                         setTimeout(() => {
                             clearInterval(shineInterval);
                             
-                            // 播放謝謝語音
                             try { 
                                 let thanksVoice = new Audio(`${this.folder}/thanks.mp3`); 
                                 thanksVoice.volume = window.audioSettings ? window.audioSettings.sfx : 1.0; 
                                 thanksVoice.play().catch(e=>{}); 
                             } catch(e){}
                             
-                            // 露娜復活跳躍
                             h.src = `${this.folder}/happy.png`;
                             h.style.animation = "lunaHappyJump 0.4s 3 ease-in-out";
 
-                            // 海馬本尊歸位，變開心跳躍
                             if (originalPet) {
                                 originalPet.src = `${this.folder}/happy_seahorse.png`;
                                 originalPet.style.opacity = '1';
@@ -201,12 +186,10 @@ window.HeroRegistry['hero3'] = {
                             if(typeof showBattleMsg === 'function') showBattleMsg("💖 露娜復活了！生命值回復 3 點！");
                             if(typeof showHealEffect === 'function') showHealEffect(true, 3);
                             
-                            // 移除身上跳的海馬
                             seahorse.style.opacity = '0';
                             setTimeout(() => seahorse.remove(), 500);
 
                             setTimeout(() => {
-                                // 全部還原
                                 h.src = `${this.folder}/hero.png`;
                                 h.style.animation = "";
                                 if (originalPet) {
@@ -215,19 +198,19 @@ window.HeroRegistry['hero3'] = {
                                 }
                             }, 1500);
 
-                        }, 2500); // 金光噴射時間
+                        }, 2500);
 
-                    }, 1000); // 海馬在身上跳的時間
+                    }, 1000);
 
-                }, 1500); // 慌張＋驚嘆號的總等待時間
+                }, 1500);
             }
             return; 
         }
 
         // =====================================
-        // 正常的受傷判定
+        // 正常的受傷判定 (如果沒滿五星，或已經復活過，就會走這裡並死亡)
         // =====================================
-        h.src = `${this.folder}/hurt.png`;
+        h.src = (pHP <= 0) ? `${this.folder}/dead.png` : `${this.folder}/hurt.png`;
         setTimeout(() => {
             h.classList.add('hurt-shake');
             try { let hs = document.getElementById('hero-hurt-sfx'); hs.volume = window.audioSettings ? window.audioSettings.sfx : 1.0; hs.play().catch(e=>{}); } catch(e){} 

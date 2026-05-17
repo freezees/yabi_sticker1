@@ -1,9 +1,8 @@
-// lobby.js - 終極大廳版 (包含：完美貼紙村莊互動系統、滿星防呆、寵物位置調高、規則更新)
+// lobby.js - 輕量化大廳核心 (村莊邏輯已移至 village.js + 綜合商店系統)
 
 const rarityFolderMap = { 'SSR': 'ssr', 'SR': 'sr', 'R': 'r', 'N': 'normal' };
 const FALLBACK_IMAGE = 'assets/meteor.png';
 
-// ★ 統一使用 system.js 的全域概念，確保不會重複產生物件
 window.shopBgm = window.shopBgm || new Audio('assets/music/shop_bgm.mp3');
 window.shopBgm.loop = true;
 window.villageBgm = window.villageBgm || new Audio('assets/music/village_bgm.mp3');
@@ -12,16 +11,16 @@ window.gachaBgm = window.gachaBgm || new Audio('assets/music/gacha_bgm.mp3');
 window.gachaBgm.loop = true;
 
 // ========== 貼紙輔助函數 ==========
-function getStickerDisplayId(s) {
+window.getStickerDisplayId = function(s) {
     let rank = stickerDB.filter(x => x.rarity === s.rarity && x.id <= s.id).length;
     return (s.rarity + rank).toLowerCase();
-}
+};
 
-function getStickerAssets(s) {
+window.getStickerAssets = function(s) {
     let folder = rarityFolderMap[s.rarity] || 'normal';
     let baseName = getStickerDisplayId(s);
     return { img: `sticker/${folder}/${baseName}.png`, vid: `sticker_video/${folder}/intro${baseName}.mp4` };
-}
+};
 
 function checkUnlocks() {
     if (!window.gachaData || !window.gachaData.collection) {
@@ -54,7 +53,6 @@ function changeHeroSelection(dir) {
         if (h.unlocked && selectedHeroIdx < 10) preview.classList.add('ssr-glow');
         else preview.classList.remove('ssr-glow');
 
-        // ★ 大廳寵物位置調整 (調高到 150px)
         let petImg = document.getElementById('pet-preview');
         if (!petImg) {
             petImg = document.createElement('img');
@@ -192,8 +190,8 @@ function savePoolEditorByCount() {
     alert("✅ 卡池設定已儲存！");
 }
 
-// ========== 貼紙加成計算核心 (依照您的最新規則) ==========
-function calcBuffs() {
+// ========== 貼紙加成計算核心 ==========
+window.calcBuffs = function() {
     if (!window.gachaData || !window.gachaData.collection) return;
 
     let ssrCount = 0;
@@ -202,11 +200,8 @@ function calcBuffs() {
     let nCount = 0;
     let srMaxCount = 0;
 
-    // 掃描玩家擁有的所有貼紙
     window.gachaData.collection.forEach(id => {
-        // 只計算「家長功能」中設定為開放的貼紙
         if (!enabledStickers.includes(id)) return;
-        
         let s = stickerDB.find(x => x.id === id);
         if (!s) return;
 
@@ -215,23 +210,21 @@ function calcBuffs() {
         if (s.rarity === 'SSR') ssrCount++;
         if (s.rarity === 'SR') {
             srCount++;
-            if (stars >= 5) srMaxCount++; // SR 滿星額外加成
+            if (stars >= 5) srMaxCount++; 
         }
         if (s.rarity === 'R') rCount++;
         if (s.rarity === 'N') nCount++;
     });
 
-    // 依照您的規則設定全域變數
-    window.hpBuffAmt = ssrCount;                    // SSR: 每張 +1 血量
-    window.critRate = 5 + srCount + srMaxCount;     // SR: 基礎 5% + 每張 1% + 滿星再 1%
-    window.hintBuffAmt = Math.floor(rCount / 10);   // R: 每 10 張 +1 提示
-    window.extraCoinsBonus = Math.floor(nCount / 10); // N: 每 10 張 +1 代幣
-}
-
+    window.hpBuffAmt = ssrCount;                    
+    window.critRate = 5 + srCount + srMaxCount;     
+    window.hintBuffAmt = Math.floor(rCount / 10);   
+    window.extraCoinsBonus = Math.floor(nCount / 10); 
+};
 
 // ========== 更新大廳 UI ==========
-function updateLobbyUI() {
-    if (typeof calcBuffs === 'function') calcBuffs();
+window.updateLobbyUI = function() {
+    if (typeof window.calcBuffs === 'function') window.calcBuffs();
     const coinEl = document.getElementById('lobby-coin-val');
     const dustEl = document.getElementById('lobby-dust-val');
     if (coinEl) coinEl.innerText = window.gachaData.coins;
@@ -241,25 +234,31 @@ function updateLobbyUI() {
     if (buffPanel) {
         buffPanel.innerHTML = `✨ 加成：血量 +${window.hpBuffAmt || 0}💖 | 爆擊率 ${window.critRate || 5}%💥 | 提示 +${window.hintBuffAmt || 0}🪄 | 額外代幣 +${window.extraCoinsBonus || 0}🪙`;
     }
-}
+};
 
 // ========== 彈窗管理與音樂切換 ==========
 window.closeLobbyModal = function() {
     const modal = document.getElementById('lobby-modal');
     if (modal) modal.style.display = 'none';
     
-    // 停止特殊彈窗的音樂
     if (window.gachaBgm) window.gachaBgm.pause();
     if (window.shopBgm) window.shopBgm.pause();
     if (window.villageBgm) window.villageBgm.pause(); 
     
-    // 停止村莊遊走引擎動畫
+    if (window.villageCampfireAudio) { 
+        window.villageCampfireAudio.pause(); 
+        window.villageCampfireAudio.currentTime = 0; 
+    }
+    if (window.superBalloonAudio) {
+        window.superBalloonAudio.pause();
+        window.superBalloonAudio.currentTime = 0;
+    }
+    
     if (window.villageAnimFrame) {
         cancelAnimationFrame(window.villageAnimFrame);
         window.villageAnimFrame = null;
     }
     
-    // ★ 恢復大廳音樂
     if (window.lobbyBgm && window.lobbyBgm.paused) {
         window.lobbyBgm.volume = window.audioSettings ? window.audioSettings.bgm : 0.5;
         window.lobbyBgm.play().catch(e => {});
@@ -273,10 +272,19 @@ function openModal(contentId) {
     
     if (!modal || !content) return;
     
-    // 先把其他音樂暫停，避免打架
     if (window.gachaBgm) window.gachaBgm.pause();
     if (window.shopBgm) window.shopBgm.pause();
     if (window.villageBgm) window.villageBgm.pause(); 
+    
+    if (window.villageCampfireAudio) { 
+        window.villageCampfireAudio.pause(); 
+        window.villageCampfireAudio.currentTime = 0; 
+    }
+    if (window.superBalloonAudio) {
+        window.superBalloonAudio.pause();
+        window.superBalloonAudio.currentTime = 0;
+    }
+    
     if (window.villageAnimFrame) {
         cancelAnimationFrame(window.villageAnimFrame);
         window.villageAnimFrame = null;
@@ -296,7 +304,7 @@ function openModal(contentId) {
         }
     } else if (contentId === 'shop') {
         modalContentBox.style.background = "url('assets/bg_shop.png') center/cover no-repeat";
-        content.innerHTML = buildShopContent();
+        content.innerHTML = buildShopContent(); // 呼叫更新後的綜合商店
         
         if (window.lobbyBgm) window.lobbyBgm.pause();
         if (window.shopBgm) {
@@ -305,16 +313,18 @@ function openModal(contentId) {
             window.shopBgm.play().catch(e => {});
         }
     } else if (contentId === 'wall') {
-        // ★ 村莊專屬音樂邏輯
         if (window.lobbyBgm) window.lobbyBgm.pause();
         if (window.villageBgm) {
             window.villageBgm.currentTime = 0;
             window.villageBgm.volume = window.audioSettings ? window.audioSettings.bgm : 0.5;
             window.villageBgm.play().catch(e => {});
         }
-        content.innerHTML = buildWallContent();
+        if(typeof buildWallContent === 'function') {
+            content.innerHTML = buildWallContent();
+        } else {
+            content.innerHTML = '<div style="text-align:center; padding:50px;">載入村莊引擎中...</div>';
+        }
     } else {
-        // ★ 其他彈窗：維持播放大廳音樂！
         if (window.lobbyBgm && window.lobbyBgm.paused) {
             window.lobbyBgm.volume = window.audioSettings ? window.audioSettings.bgm : 0.5;
             window.lobbyBgm.play().catch(e => {});
@@ -343,7 +353,7 @@ document.addEventListener('click', function(e) {
 
 // ========== 彈窗內容產生器 ==========
 function buildGachaContent() {
-    updateLobbyUI();
+    window.updateLobbyUI();
     return `
         <div style="text-align:center;">
             <div style="display:flex; justify-content:space-between; background:rgba(0,0,0,0.7); padding:10px 20px; border-radius:30px; margin-bottom:20px;">
@@ -362,10 +372,42 @@ function buildGachaContent() {
     `;
 }
 
+// 🌟🌟🌟 新版綜合商店系統 (金幣買道具 + 星塵升貼紙) 🌟🌟🌟
 function buildShopContent() {
-    updateLobbyUI();
-    let html = `<div style="text-align:center; margin-bottom:15px;"><span style="background:rgba(0,0,0,0.7); padding:8px 20px; border-radius:30px; font-size:22px; color:white;">✨ 星塵：${window.gachaData.dust}</span></div>`;
-    html += '<div class="sticker-grid" style="height:calc(90vh - 280px); overflow-y:auto; padding:10px;">';
+    window.updateLobbyUI();
+    let hasStar = window.gachaData.hasSpeedStar;
+
+    let html = `<div style="text-align:center; margin-bottom:15px; display:flex; justify-content:center; gap:20px;">
+                    <span style="background:rgba(0,0,0,0.7); padding:8px 20px; border-radius:30px; font-size:20px; color:#f39c12;">🪙 ${window.gachaData.coins}</span>
+                    <span style="background:rgba(0,0,0,0.7); padding:8px 20px; border-radius:30px; font-size:20px; color:#e056fd;">✨ ${window.gachaData.dust}</span>
+                </div>`;
+                
+    html += `<div style="height:calc(90vh - 180px); overflow-y:auto; padding:10px;">`;
+
+    // ===== 🛒 第一區：村莊道具 (金幣購買) =====
+    html += `<div style="background:rgba(0,0,0,0.4); border-radius:15px; padding:15px; margin-bottom:20px; box-shadow:0 5px 15px rgba(0,0,0,0.3);">
+                <div style="font-size:18px; font-weight:bold; color:#fff; text-shadow:0 2px 4px #000; border-bottom:2px dashed rgba(255,255,255,0.5); padding-bottom:5px; margin-bottom:15px;">🛒 村莊道具 (使用 🪙 代幣)</div>
+                <div style="display:flex; gap:15px; justify-content:center; flex-wrap:wrap;">`;
+    
+    // 道具1：加速星星
+    html += `
+        <div class="sticker-card" style="background:rgba(255,255,255,0.9); border:4px solid #f1c40f; cursor:${hasStar ? 'default' : 'pointer'}; position:relative; width:100px; height:120px;" onclick="${hasStar ? '' : `buyPropItem('speedStar', 100)`}">
+            <div style="font-size:14px; font-weight:bold; color:#d35400; margin-bottom:5px; margin-top:5px;">加速星星</div>
+            <img src="assets/speed_star.png" style="width:50%; filter:drop-shadow(0 5px 5px rgba(0,0,0,0.2));" onerror="this.outerHTML='<div style=\\'font-size:40px; margin:5px 0;\\'>⭐</div>'">
+            ${hasStar
+                ? `<div style="position:absolute; bottom:5px; left:50%; transform:translateX(-50%); background:#27ae60; color:white; padding:4px 10px; border-radius:10px; font-size:12px; font-weight:bold; width:80%; box-sizing:border-box;">已解鎖</div>`
+                : `<div style="position:absolute; bottom:5px; left:50%; transform:translateX(-50%); background:#f39c12; color:white; padding:4px 10px; border-radius:10px; font-size:14px; font-weight:bold; width:80%; box-shadow:0 2px 4px rgba(0,0,0,0.3); box-sizing:border-box;">🪙 100</div>`
+            }
+        </div>
+    `;
+    html += `   </div>
+              </div>`;
+
+    // ===== ✨ 第二區：貼紙升級 (星塵購買) =====
+    html += `<div style="background:rgba(0,0,0,0.4); border-radius:15px; padding:15px; box-shadow:0 5px 15px rgba(0,0,0,0.3);">
+                <div style="font-size:18px; font-weight:bold; color:#fff; text-shadow:0 2px 4px #000; border-bottom:2px dashed rgba(255,255,255,0.5); padding-bottom:5px; margin-bottom:15px;">✨ 貼紙魔法升級 (使用 ✨ 星塵)</div>
+                <div class="sticker-grid" style="padding-bottom:20px;">`;
+                
     let shopPriceMap = { 'N': 3, 'R': 9, 'SR': 15, 'SSR': 30 };
     let hasItem = false;
 
@@ -376,31 +418,63 @@ function buildShopContent() {
         let stars = window.gachaData.stars[s.id] || 0;
         let price = shopPriceMap[s.rarity];
         let isMaxed = stars >= 5;
-        let assets = getStickerAssets(s);
+        let assets = window.getStickerAssets(s);
         html += `
             <div class="sticker-card rarity-${s.rarity}" style="cursor:pointer;" onclick="buyShopItemModal(${s.id}, ${price})">
-                <div class="sticker-id">${getStickerDisplayId(s)}</div>
+                <div class="sticker-id">${window.getStickerDisplayId(s)}</div>
                 <img src="${assets.img}" onerror="this.src='${FALLBACK_IMAGE}'">
                 ${stars > 0 ? `<div class="card-stars">${'⭐'.repeat(stars)}</div>` : ''}
                 <div class="rarity-badge badge-${s.rarity}">${s.rarity}</div>
-                ${!isMaxed ? `<div style="position:absolute; bottom:5px; left:50%; transform:translateX(-50%); background:white; padding:2px 8px; border-radius:10px; font-size:13px; color:black;">✨ ${price}</div>` : '<div style="position:absolute; bottom:5px; left:50%; transform:translateX(-50%); background:rgba(0,0,0,0.8); color:white; padding:2px 8px; border-radius:10px; font-size:11px;">已滿星</div>'}
+                ${!isMaxed ? `<div style="position:absolute; bottom:5px; left:50%; transform:translateX(-50%); background:white; padding:2px 8px; border-radius:10px; font-size:13px; color:black; font-weight:bold; box-shadow:0 2px 4px rgba(0,0,0,0.3);">✨ ${price}</div>` : '<div style="position:absolute; bottom:5px; left:50%; transform:translateX(-50%); background:rgba(0,0,0,0.8); color:white; padding:2px 8px; border-radius:10px; font-size:11px;">已滿星</div>'}
             </div>
         `;
     });
-    if (!hasItem) html += '<div style="text-align:center; padding:40px; color:white; font-size:20px; text-shadow: 0 2px 4px rgba(0,0,0,0.8);">寶盒空空的！先去轉蛋機解鎖貼紙吧！</div>';
-    else html += '</div>';
+    if (!hasItem) html += `<div style="text-align:center; padding:40px; color:white; font-size:18px; text-shadow:0 2px 4px rgba(0,0,0,0.8); grid-column:1/-1;">寶盒空空的！先去轉蛋機解鎖貼紙吧！</div>`;
     
-    html += `
-        <div style="text-align:center; margin-top:20px;">
-            <img id="shop-magic-box" src="assets/shop_box.png" onerror="this.src='${FALLBACK_IMAGE}';" style="width:120px; filter:drop-shadow(0 10px 15px rgba(0,0,0,0.5)); animation:breatheAnim 2.5s infinite; cursor:pointer;" onclick="alert('點擊商店中的貼紙即可升級！✨')">
-            <div style="font-size:16px; color:white; text-shadow: 0 2px 4px rgba(0,0,0,0.8); margin-top:5px; font-weight:bold;">✨ 點擊貼紙使用星塵升級 ✨</div>
-        </div>
-    `;
+    html += `   </div>
+              </div>`;
+    html += `</div>`; // end scroll container
     return html;
 }
 
+// 🌟🌟🌟 購買村莊道具的函式 🌟🌟🌟
+window.buyPropItem = function(itemId, price) {
+    let isTestMode = window.gachaData.coins >= 99999;
+
+    if (itemId === 'speedStar') {
+        if (window.gachaData.hasSpeedStar) {
+            alert("你已經擁有這個道具囉！");
+            return;
+        }
+
+        if (window.gachaData.coins >= price || isTestMode) {
+            if (confirm(`確定要花費 ${price} 🪙 購買「加速星星」嗎？\n(丟進村莊，村民吃了會跑超快！)`)) {
+                if (!isTestMode) window.gachaData.coins -= price;
+                window.gachaData.hasSpeedStar = true;
+                
+                localStorage.setItem('gachaSystemV5', JSON.stringify(window.gachaData));
+                
+                // 播放成功音效 (沿用轉蛋的音效)
+                try {
+                    let buySfx = new Audio('assets/music/gacha_charge.mp3');
+                    buySfx.volume = window.audioSettings ? window.audioSettings.sfx : 1.0;
+                    buySfx.play().catch(e=>{});
+                } catch(e) {}
+
+                alert("✅ 購買成功！快打開【村莊】把星星丟給村民搶吧！");
+                
+                // 更新畫面
+                document.getElementById('lobby-modal-content').innerHTML = buildShopContent();
+                window.updateLobbyUI();
+            }
+        } else {
+            alert("🪙 金幣不夠喔！快去玩遊戲賺代幣吧！");
+        }
+    }
+};
+
 function buildCollectionContent() {
-    updateLobbyUI();
+    window.updateLobbyUI();
     let owned = window.gachaData.collection.filter(id => enabledStickers.includes(id)).length;
     let html = `<div style="text-align:center; margin-bottom:15px; font-weight:bold; font-size:22px;">收集進度：${owned} / ${enabledStickers.length}</div>`;
     html += '<div class="sticker-grid" style="height:calc(90vh - 150px); overflow-y:auto; padding:10px;">';
@@ -408,10 +482,10 @@ function buildCollectionContent() {
         if (!enabledStickers.includes(s.id)) return;
         let isOwned = window.gachaData.collection.includes(s.id);
         let stars = window.gachaData.stars[s.id] || 0;
-        let assets = getStickerAssets(s);
+        let assets = window.getStickerAssets(s);
         html += `
             <div class="sticker-card rarity-${s.rarity} ${!isOwned ? 'sticker-locked' : ''}" onclick="${isOwned ? `showStickerDetail(${s.id})` : ''}">
-                <div class="sticker-id">${getStickerDisplayId(s)}</div>
+                <div class="sticker-id">${window.getStickerDisplayId(s)}</div>
                 ${isOwned ? `<img src="${assets.img}" onerror="this.src='${FALLBACK_IMAGE}'">${stars > 0 ? `<div class="card-stars">${'⭐'.repeat(stars)}</div>` : ''}` : '<div style="font-size:30px; color:#ccc;">?</div>'}
                 <div class="rarity-badge badge-${s.rarity}">${s.rarity}</div>
             </div>
@@ -421,378 +495,6 @@ function buildCollectionContent() {
     return html;
 }
 
-// ========== 🌟 終極進化：魔法村莊與互動系統 (日夜/天氣/拖曳/寵物版) ==========
-window.villageAnimFrame = null; 
-
-function buildWallContent() {
-    let html = `
-        <div style="font-size:24px; font-weight:bold; text-align:center; margin-bottom:10px; color:#8e44ad;">🏡 魔法貼紙村莊</div>
-        <div id="village-container" style="position:relative; width:100%; height:45vh; background: url('assets/village.png') center/cover, linear-gradient(to bottom, #a1c4fd 0%, #c2e9fb 100%); border-radius:20px; border:4px solid #fff; overflow:hidden; box-shadow: inset 0 0 20px rgba(0,0,0,0.2); margin-bottom:15px; user-select:none;">
-            <!-- 村民、天氣與寶藏會被放進這裡 -->
-        </div>
-        <div style="text-align:center; font-size:14px; color:#7f8c8d; margin-bottom:5px;">👇 點擊更換村民，或用滑鼠/手指「抓起」他們看看！ 👇</div>
-    `;
-
-    html += '<div class="wall-grid" style="display:flex; flex-wrap:wrap; justify-content:center; gap:15px;">';
-    window.gachaData.wall.forEach((slotId, index) => {
-        if (slotId !== null && enabledStickers.includes(slotId)) {
-            let s = stickerDB.find(x => x.id === slotId);
-            if (s) {
-                let assets = getStickerAssets(s);
-                html += `<div class="wall-slot rarity-${s.rarity}" style="width:65px; height:65px; cursor:pointer;" onclick="editWallSlot(${index})"><img src="${assets.img}" style="width:80%; pointer-events:none;" onerror="this.src='${FALLBACK_IMAGE}'"></div>`;
-            }
-        } else {
-            html += `<div class="wall-slot" style="width:65px; height:65px; cursor:pointer; background:#eee; display:flex; align-items:center; justify-content:center; border-radius:15px; border: 2px dashed #ccc;" onclick="editWallSlot(${index})"><div style="font-size:30px; color:#aaa; pointer-events:none;">+</div></div>`;
-        }
-    });
-    html += '</div>';
-
-    setTimeout(startVillageEngine, 50);
-    return html;
-}
-
-// ========== 輔助：天氣與特效粒子生成器 (5種天氣終極版) ==========
-function spawnWeatherParticle(type, container, w, h) {
-    let p = document.createElement('div');
-    p.style.position = 'absolute';
-    p.style.pointerEvents = 'none';
-    p.style.zIndex = '900'; 
-    
-    if (type === 'rain') {
-        p.style.width = '2px'; p.style.height = '15px'; p.style.background = 'rgba(255,255,255,0.6)';
-        p.style.left = (Math.random() * w) + 'px'; p.style.top = '-20px';
-        container.appendChild(p);
-        let duration = 0.3 + Math.random() * 0.2;
-        p.style.transition = `transform ${duration}s linear`;
-        setTimeout(() => p.style.transform = `translateY(${h + 50}px) translateX(-20px)`, 10);
-        setTimeout(() => p.remove(), duration * 1000);
-    } else if (type === 'snow') {
-        p.innerText = '❄️'; p.style.fontSize = (8 + Math.random() * 10) + 'px';
-        p.style.left = (Math.random() * w) + 'px'; p.style.top = '-20px';
-        p.style.opacity = Math.random() * 0.8 + 0.2;
-        container.appendChild(p);
-        let duration = 3 + Math.random() * 2;
-        p.style.transition = `transform ${duration}s linear`;
-        setTimeout(() => p.style.transform = `translateY(${h + 50}px) translateX(${Math.random()*60 - 30}px) rotate(${Math.random()*360}deg)`, 10);
-        setTimeout(() => p.remove(), duration * 1000);
-    } else if (type === 'wind') {
-        // 颳大風：飛舞的落葉
-        p.innerText = Math.random() > 0.5 ? '🍃' : '🍂'; 
-        p.style.fontSize = (12 + Math.random() * 10) + 'px';
-        p.style.left = '-30px'; 
-        p.style.top = (Math.random() * h * 0.8) + 'px';
-        p.style.opacity = Math.random() * 0.8 + 0.2;
-        p.style.filter = 'drop-shadow(0 2px 2px rgba(0,0,0,0.3))';
-        container.appendChild(p);
-        let duration = 0.8 + Math.random() * 1.2; // 飛很快
-        p.style.transition = `transform ${duration}s linear`;
-        setTimeout(() => p.style.transform = `translateX(${w + 50}px) translateY(${Math.random()*60 - 30}px) rotate(${Math.random()*720}deg)`, 10);
-        setTimeout(() => p.remove(), duration * 1000);
-    } else if (type === 'sun') {
-        // 太陽：閃爍的光斑
-        p.style.width = '10px'; p.style.height = '10px'; p.style.background = '#fff9c4';
-        p.style.borderRadius = '50%'; p.style.boxShadow = '0 0 20px 10px rgba(255,255,200,0.6)';
-        p.style.left = (Math.random() * w) + 'px'; p.style.top = (Math.random() * h) + 'px';
-        p.style.opacity = '0';
-        container.appendChild(p);
-        p.style.animation = 'breatheAnim 3s ease-in-out';
-        setTimeout(() => p.remove(), 3000);
-    } else if (type === 'firefly') {
-        p.style.width = '5px'; p.style.height = '5px'; p.style.background = '#f1c40f';
-        p.style.borderRadius = '50%'; p.style.boxShadow = '0 0 10px 3px #f1c40f';
-        p.style.left = (Math.random() * w) + 'px'; p.style.top = (h * 0.3 + Math.random() * h * 0.7) + 'px';
-        container.appendChild(p);
-        let duration = 2 + Math.random() * 3;
-        p.style.transition = `all ${duration}s ease-in-out`;
-        setTimeout(() => { p.style.transform = `translateY(-30px) translateX(${Math.random()*40-20}px)`; p.style.opacity = '0'; }, 10);
-        setTimeout(() => p.remove(), duration * 1000);
-    }
-}
-
-// ========== 🌟 村莊主引擎 (專屬夜景圖 ＋ 取消黑夜濾鏡版) ==========
-function startVillageEngine() {
-    const container = document.getElementById('village-container');
-    if (!container) return; 
-    if (window.villageAnimFrame) cancelAnimationFrame(window.villageAnimFrame);
-
-    let villagers = [];
-    let contWidth = container.clientWidth || 400;
-    let contHeight = container.clientHeight || 300;
-
-    // 🌟 1. 偵測日夜
-    let hour = new Date().getHours();
-    let isNight = (hour >= 18 || hour <= 5);
-
-    // 🌟 2. 隨機決定天氣 (如果是晚上，就不會出太陽)
-    const dayWeathers = ['sun', 'rain', 'snow', 'fog', 'wind'];
-    const nightWeathers = ['clear', 'rain', 'snow', 'fog', 'wind']; // 晚上用 clear 取代 sun
-    let weathers = isNight ? nightWeathers : dayWeathers;
-    let weather = weathers[Math.floor(Math.random() * weathers.length)];
-    
-    // 🌟 3. 根據日夜與天氣，自動替換背景圖！
-    const weatherBgs = {
-        'sun': "url('assets/village_sun.png')",
-        'rain': "url('assets/village_rain.png')",
-        'snow': "url('assets/village_snow.png')",
-        'fog': "url('assets/village_fog.png')",
-        'wind': "url('assets/village_wind.png')"
-    };
-    
-    // 🌃 關鍵：如果是晚上，強制使用 village_night.png！
-    let bgImage = isNight ? "url('assets/village_night.png')" : weatherBgs[weather];
-    
-    // 套用背景，並且拿掉原本那層醜醜的 nightOverlay 了！
-    container.style.background = `${bgImage} center/cover no-repeat, linear-gradient(to bottom, #1a2a6c 0%, #b21f1f 50%, #fdbb2d 100%)`;
-    
-    // 建立天氣濾鏡層 (白天為了融合特效加一點點透明色，晚上則盡量保持你圖片的原色)
-    let weatherOverlay = document.createElement('div');
-    weatherOverlay.style.cssText = 'position:absolute;top:0;left:0;width:100%;height:100%;pointer-events:none;z-index:800;transition:all 1s;';
-    
-    if (weather === 'rain') weatherOverlay.style.background = isNight ? 'rgba(0, 0, 50, 0.1)' : 'rgba(20, 30, 50, 0.3)'; 
-    else if (weather === 'snow') weatherOverlay.style.background = isNight ? 'rgba(255, 255, 255, 0.05)' : 'rgba(255, 255, 255, 0.2)'; 
-    else if (weather === 'fog') {
-        weatherOverlay.style.background = isNight ? 'rgba(200, 200, 200, 0.15)' : 'rgba(255, 255, 255, 0.4)';
-        weatherOverlay.style.backdropFilter = 'blur(3px)'; 
-    }
-    else if (weather === 'wind') weatherOverlay.style.background = isNight ? 'rgba(0, 0, 0, 0.1)' : 'rgba(200, 180, 150, 0.15)'; 
-    else if (weather === 'sun') weatherOverlay.style.background = 'rgba(255, 255, 200, 0.1)'; 
-    
-    container.appendChild(weatherOverlay);
-
-    // 顯示當前天氣提示
-    let weatherLabel = document.createElement('div');
-    let labelText = "";
-    if (isNight) {
-        let nightIcons = { 'clear':'🌃 寧靜夜晚', 'rain':'🌧️ 夜間陣雨', 'snow':'❄️ 浪漫夜雪', 'fog':'🌫️ 迷蹤夜霧', 'wind':'🌪️ 夜晚狂風' };
-        labelText = nightIcons[weather];
-    } else {
-        let dayIcons = { 'sun':'🌞 晴空萬里', 'rain':'🌧️ 魔法陣雨', 'snow':'❄️ 浪漫雪天', 'fog':'🌫️ 迷蹤大霧', 'wind':'🌪️ 狂風大作' };
-        labelText = dayIcons[weather];
-    }
-    
-    weatherLabel.innerText = labelText;
-    weatherLabel.style.cssText = 'position:absolute; top:10px; right:10px; background:rgba(255,255,255,0.9); padding:5px 12px; border-radius:20px; font-weight:bold; color:#333; z-index:901; font-size:14px; box-shadow:0 3px 6px rgba(0,0,0,0.3); border:2px solid #fff;';
-    container.appendChild(weatherLabel);
-
-    // 🌟 4. 建立村民與寵物
-    window.gachaData.wall.forEach((slotId) => {
-        if (slotId !== null && enabledStickers.includes(slotId)) {
-            let s = stickerDB.find(x => x.id === slotId);
-            if (s) {
-                let assets = getStickerAssets(s);
-                let stars = window.gachaData.stars[s.id] || 0;
-                
-                let wrapper = document.createElement('div');
-                wrapper.style.cssText = 'position:absolute; width:70px; height:70px; cursor:grab;'; 
-                let img = document.createElement('img');
-                img.src = assets.img;
-                img.style.cssText = 'width:100%; filter:drop-shadow(0 5px 5px rgba(0,0,0,0.4)); pointer-events:none; transition:transform 0.1s;';
-                
-                let bubble = document.createElement('div');
-                bubble.style.cssText = 'position:absolute; top:-35px; left:50%; transform:translateX(-50%); background:white; border:2px solid #ffb6c1; border-radius:12px; padding:4px 10px; font-size:14px; font-weight:bold; color:#e74c3c; opacity:0; transition:opacity 0.3s; pointer-events:none; white-space:nowrap; box-shadow:0 2px 5px rgba(0,0,0,0.2); z-index:999;';
-                
-                wrapper.appendChild(img); wrapper.appendChild(bubble);
-
-                let startX = Math.random() * (contWidth - 70);
-                let startY = (contHeight * 0.6) + Math.random() * (contHeight * 0.4 - 70); 
-                wrapper.style.left = startX + 'px'; wrapper.style.top = startY + 'px';
-                container.appendChild(wrapper);
-
-                // 寵物系統
-                let petObj = null;
-                if (s.id < 10 && stars >= 5 && typeof heroes !== 'undefined' && heroes[s.id] && heroes[s.id].petImg) {
-                    let petImg = document.createElement('img');
-                    petImg.src = heroes[s.id].petImg;
-                    petImg.style.cssText = 'position:absolute; width:35px; filter:drop-shadow(0 3px 3px rgba(0,0,0,0.4)); pointer-events:none; transition:transform 0.1s;';
-                    container.appendChild(petImg);
-                    petObj = { el: petImg, x: startX - 40, y: startY + 20, direction: 1 };
-                }
-
-                // 天氣影響村民速度
-                let baseSpeed = 0.3 + Math.random() * 0.4;
-                if (weather === 'rain') baseSpeed *= 1.5; 
-                else if (weather === 'snow') baseSpeed *= 0.6; 
-                else if (weather === 'wind') baseSpeed *= 1.8; 
-
-                let v = {
-                    el: wrapper, imgEl: img, bubble: bubble, rarity: s.rarity, pet: petObj,
-                    x: startX, y: startY, targetX: startX, targetY: startY,     
-                    speed: baseSpeed, 
-                    state: 'idle', timer: Math.random() * 100, direction: 1, fallVelocity: 0, targetFloorY: 0,
-                    showBubble: function(text, duration, color = '#e74c3c') {
-                        this.bubble.innerText = text; this.bubble.style.color = color; this.bubble.style.opacity = '1';
-                        clearTimeout(this.bubbleTimer);
-                        this.bubbleTimer = setTimeout(() => { this.bubble.style.opacity = '0'; }, duration);
-                    }
-                };
-                villagers.push(v);
-
-                // 拖曳與點擊系統
-                let isDragging = false, startMouseX, startMouseY;
-                
-                const triggerClick = () => {
-                    v.imgEl.style.transform = `translateY(-25px) scaleX(${v.direction}) scaleY(1.1)`;
-                    setTimeout(() => { v.imgEl.style.transform = `translateY(0) scaleX(${v.direction}) scaleY(1)`; }, 300);
-                    let currentLessons = (typeof activeLessons !== 'undefined' && activeLessons.length > 0) ? activeLessons : JSON.parse(localStorage.getItem('activeLessons') || '[]');
-                    if (typeof lessonData !== 'undefined' && currentLessons.length > 0) {
-                        let lesson = currentLessons[Math.floor(Math.random() * currentLessons.length)];
-                        if (lessonData[lesson] && lessonData[lesson].length > 0) {
-                            let word = lessonData[lesson][Math.floor(Math.random() * lessonData[lesson].length)];
-                            v.showBubble(word, 2000, '#3498db');
-                            if ('speechSynthesis' in window) {
-                                window.speechSynthesis.cancel(); 
-                                let utterance = new SpeechSynthesisUtterance(word); utterance.lang = 'en-US'; window.speechSynthesis.speak(utterance);
-                            }
-                        }
-                    } else v.showBubble("Hello!", 1500, '#e74c3c');
-                };
-
-                const startDrag = (cx, cy) => {
-                    isDragging = true; startMouseX = cx; startMouseY = cy;
-                    let rect = container.getBoundingClientRect();
-                    v.dragOffsetX = cx - rect.left - v.x; v.dragOffsetY = cy - rect.top - v.y;
-                    v.state = 'drag'; v.el.style.zIndex = 9999; wrapper.style.cursor = 'grabbing';
-                    v.imgEl.style.transition = 'none'; 
-                    v.imgEl.style.transform = `scaleX(${v.direction}) scaleY(1.1) rotate(10deg)`;
-                };
-
-                const doDrag = (cx, cy) => {
-                    if (!isDragging) return;
-                    let rect = container.getBoundingClientRect();
-                    v.x = cx - rect.left - v.dragOffsetX; v.y = cy - rect.top - v.dragOffsetY;
-                };
-
-                const endDrag = (cx, cy) => {
-                    if (!isDragging) return;
-                    isDragging = false; wrapper.style.cursor = 'grab'; v.imgEl.style.transition = 'transform 0.1s';
-                    if (Math.hypot(cx - startMouseX, cy - startMouseY) < 10) { v.state = 'idle'; triggerClick(); } 
-                    else {
-                        v.state = 'fall'; v.fallVelocity = 0; 
-                        v.targetFloorY = Math.max(contHeight * 0.6, v.y + 50); 
-                        if(v.targetFloorY > contHeight - 70) v.targetFloorY = contHeight - 70;
-                    }
-                };
-
-                wrapper.onmousedown = (e) => {
-                    if (e.button !== 0) return; 
-                    startDrag(e.clientX, e.clientY);
-                    const onMove = (me) => doDrag(me.clientX, me.clientY);
-                    const onUp = (ue) => { document.removeEventListener('mousemove', onMove); document.removeEventListener('mouseup', onUp); endDrag(ue.clientX, ue.clientY); };
-                    document.addEventListener('mousemove', onMove); document.addEventListener('mouseup', onUp);
-                };
-                
-                wrapper.ontouchstart = (e) => {
-                    startDrag(e.touches[0].clientX, e.touches[0].clientY);
-                    const onMove = (me) => { me.preventDefault(); doDrag(me.touches[0].clientX, me.touches[0].clientY); };
-                    const onUp = (ue) => { document.removeEventListener('touchmove', onMove); document.removeEventListener('touchend', onUp); endDrag(ue.changedTouches[0].clientX, ue.changedTouches[0].clientY); };
-                    document.addEventListener('touchmove', onMove, {passive: false}); document.addEventListener('touchend', onUp);
-                };
-            }
-        }
-    });
-
-    // 🌟 5. 遊戲主迴圈
-    function update() {
-        if (!document.getElementById('village-container')) return; 
-
-        // 依據天氣產生特效粒子
-        if (weather === 'rain' && Math.random() < 0.35) spawnWeatherParticle('rain', container, contWidth, contHeight);
-        else if (weather === 'snow' && Math.random() < 0.15) spawnWeatherParticle('snow', container, contWidth, contHeight);
-        else if (weather === 'wind' && Math.random() < 0.2) spawnWeatherParticle('wind', container, contWidth, contHeight);
-        else if (weather === 'sun' && Math.random() < 0.02) spawnWeatherParticle('sun', container, contWidth, contHeight);
-        
-        // 晚上的專屬螢火蟲特效 (機率稍微調高一點，因為沒有陽光)
-        if (isNight && Math.random() < 0.08) spawnWeatherParticle('firefly', container, contWidth, contHeight);
-
-        // 寶藏系統
-        let today = new Date().toDateString();
-        if (window.gachaData.treasureDate !== today) { window.gachaData.treasureDate = today; window.gachaData.treasureCount = 0; }
-        if (window.gachaData.treasureCount < 3 && Math.random() < 0.0003 && !document.getElementById('village-treasure')) {
-            let t = document.createElement('div'); t.id = 'village-treasure';
-            let isDustBox = Math.random() > 0.5; t.innerHTML = isDustBox ? '🎁' : '🍄';
-            t.style.cssText = 'position:absolute; font-size:35px; cursor:pointer; filter:drop-shadow(0 3px 5px rgba(0,0,0,0.4)); animation:breatheAnim 1.5s infinite;';
-            let tx = Math.random() * (contWidth - 40); let ty = (contHeight * 0.6) + Math.random() * (contHeight * 0.4 - 40);
-            t.style.left = tx + 'px'; t.style.top = ty + 'px'; t.style.zIndex = Math.floor(ty);
-            t.onclick = function() {
-                let amt = isDustBox ? (Math.floor(Math.random() * 5) + 1) : 1; 
-                if (isDustBox) window.gachaData.dust += amt; else window.gachaData.coins += amt;
-                window.gachaData.treasureCount++;
-                localStorage.setItem('gachaSystemV5', JSON.stringify(window.gachaData)); updateLobbyUI();
-                let ft = document.createElement('div'); ft.innerHTML = isDustBox ? `+${amt}✨` : `+${amt}🪙`;
-                ft.style.cssText = `position:absolute; left:${tx}px; top:${ty}px; color:${isDustBox?'#8e44ad':'#f39c12'}; font-weight:bold; font-size:24px; z-index:9999; text-shadow:1px 1px 2px white,-1px -1px 2px white; transition:all 1s ease-out;`;
-                container.appendChild(ft);
-                setTimeout(() => { ft.style.top = (ty - 50) + 'px'; ft.style.opacity = '0'; }, 50); setTimeout(() => ft.remove(), 1000);
-                t.remove();
-            };
-            container.appendChild(t);
-        }
-
-        villagers.forEach(v => {
-            // 迷霧迷路系統
-            if (weather === 'fog' && v.state === 'walk' && Math.random() < 0.005) {
-                v.state = 'idle';
-                v.timer = 80;
-                v.showBubble('❓', 1500, '#7f8c8d');
-            }
-
-            if (v.state === 'idle' || v.state === 'chat') {
-                v.timer--;
-                if (v.timer <= 0) {
-                    v.state = 'walk';
-                    v.targetX = Math.random() * (contWidth - 70);
-                    v.targetY = (contHeight * 0.6) + Math.random() * (contHeight * 0.4 - 70);
-                    v.direction = v.targetX > v.x ? 1 : -1; 
-                }
-            } else if (v.state === 'walk') {
-                let dx = v.targetX - v.x, dy = v.targetY - v.y, dist = Math.sqrt(dx * dx + dy * dy);
-                if (dist < 2) { v.state = 'idle'; v.timer = 60 + Math.random() * 120; } 
-                else {
-                    v.x += (dx / dist) * v.speed; v.y += (dy / dist) * v.speed;
-                    if (v.rarity === 'SSR' && Math.random() < 0.1 && typeof spawnParticle === 'function') spawnParticle(v.x, v.y+60, '⭐', '#f1c40f', container);
-                    else if (v.rarity === 'SR' && Math.random() < 0.05 && typeof spawnParticle === 'function') spawnParticle(v.x, v.y+60, '✨', '#9b59b6', container);
-                }
-            } else if (v.state === 'fall') {
-                v.fallVelocity += 1.5; v.y += v.fallVelocity;
-                if (v.y >= v.targetFloorY) {
-                    v.y = v.targetFloorY;
-                    if (v.fallVelocity > 5) v.fallVelocity = -v.fallVelocity * 0.4; 
-                    else { v.state = 'idle'; v.showBubble('😵', 1500, '#e74c3c'); } 
-                }
-            }
-
-            v.el.style.left = v.x + 'px'; v.el.style.top = v.y + 'px';
-            if (v.state !== 'drag') v.el.style.zIndex = Math.floor(v.y);
-            
-            if (v.state !== 'drag') {
-                // 大風彈跳系統
-                let bounceBase = (weather === 'wind') ? 10 : 6;
-                let bounce = v.state === 'walk' ? Math.abs(Math.sin(Date.now() / 80)) * bounceBase : 0;
-                let breathe = (v.state === 'idle' || v.state === 'chat') ? 1 + Math.sin(Date.now() / 200) * 0.03 : 1;
-                let tilt = (weather === 'wind' && v.state === 'walk') ? 'rotate(5deg)' : '';
-                v.imgEl.style.transform = `scaleX(${v.direction}) scaleY(${breathe}) translateY(-${bounce}px) ${tilt}`;
-            }
-
-            if (v.pet) {
-                let pdx = v.x - v.pet.x - (v.direction * 35); 
-                let pdy = v.y + 20 - v.pet.y;
-                v.pet.x += pdx * 0.08; v.pet.y += pdy * 0.08;
-                v.pet.direction = pdx > 0 ? 1 : -1;
-                
-                let pBounce = v.state === 'walk' ? Math.abs(Math.sin(Date.now() / 60)) * 4 : Math.sin(Date.now()/150)*3;
-                v.pet.el.style.left = v.pet.x + 'px'; v.pet.el.style.top = (v.pet.y - pBounce) + 'px';
-                v.pet.el.style.transform = `scaleX(${v.pet.direction})`;
-                v.pet.el.style.zIndex = Math.floor(v.pet.y);
-            }
-        });
-
-        window.villageAnimFrame = requestAnimationFrame(update);
-    }
-    
-    update(); 
-}
-
-
-// ========== 其餘大廳彈窗內容 ==========
 function buildLessonsContent() {
     let html = '<div style="font-size:24px; font-weight:bold; text-align:center; margin-bottom:20px;">📖 選擇單字庫</div>';
     html += '<div style="display:flex; flex-direction:column; gap:12px; height:calc(90vh - 150px); overflow-y:auto; padding:10px;">';
@@ -850,7 +552,7 @@ function buildRulesContent() {
     `;
 }
 
-// ========== 彈窗內的操作函數 ==========
+// ========== 彈窗內的操作函數 (嚴謹保底抽卡系統) ==========
 function pullGachaModal(times) {
     if (window.gachaData.coins < times * 10) {
         alert("代幣不足！");
@@ -866,16 +568,34 @@ function pullGachaModal(times) {
 
     for (let i = 0; i < times; i++) {
         let roll = Math.random();
-        let rarity = roll < 0.05 ? 'SSR' : (roll < 0.15 ? 'SR' : (roll < 0.40 ? 'R' : 'N'));
-        
-        if (rarityValueMap[rarity] > highestRarityValue) {
-            highestRarityValue = rarityValueMap[rarity];
-            highestRarity = rarity;
-        }
+        let targetRarity = 'N';
+        if (roll < 0.03) targetRarity = 'SSR';
+        else if (roll < 0.15) targetRarity = 'SR';
+        else if (roll < 0.40) targetRarity = 'R';
 
-        let pool = stickerDB.filter(s => s.rarity === rarity && enabledStickers.includes(s.id));
+        let getPool = (r) => stickerDB.filter(s => s.rarity === r && enabledStickers.includes(s.id));
+        let pool = getPool(targetRarity);
+
+        if (pool.length === 0) {
+            if (targetRarity === 'SSR') pool = getPool('SR');
+            if (pool.length === 0) pool = getPool('R');
+            if (pool.length === 0) pool = getPool('N');
+        }
+        
+        if (pool.length === 0) {
+            pool = getPool('R');
+            if (pool.length === 0) pool = getPool('SR');
+            if (pool.length === 0) pool = getPool('SSR');
+        }
+        
         if (pool.length === 0) pool = stickerDB.filter(s => enabledStickers.includes(s.id));
+
         let picked = pool[Math.floor(Math.random() * pool.length)];
+
+        if (rarityValueMap[picked.rarity] > highestRarityValue) {
+            highestRarityValue = rarityValueMap[picked.rarity];
+            highestRarity = picked.rarity;
+        }
 
         if (window.gachaData.collection.includes(picked.id)) {
             if ((window.gachaData.stars[picked.id] || 0) < 5) {
@@ -893,14 +613,14 @@ function pullGachaModal(times) {
     
     window.gachaData.dust += totalDust;
     localStorage.setItem('gachaSystemV5', JSON.stringify(window.gachaData));
-    updateLobbyUI();
+    window.updateLobbyUI();
 
     let resultHtml = '<div style="display:flex; flex-wrap:wrap; justify-content:center; gap:15px; margin-bottom:20px;">';
     results.forEach(res => {
-        let assets = getStickerAssets(res);
+        let assets = window.getStickerAssets(res);
         let glowClass = res.rarity === 'SSR' ? 'ssr-glow' : (res.rarity === 'SR' ? 'sr-glow' : (res.rarity === 'R' ? 'r-glow' : ''));
         resultHtml += `<div class="sticker-card rarity-${res.rarity}" style="width:100px; height:100px; cursor:pointer;" onclick="showStickerDetail(${res.id})">
-            <div class="sticker-id">${getStickerDisplayId(res)}</div>
+            <div class="sticker-id">${window.getStickerDisplayId(res)}</div>
             <img src="${assets.img}" class="${glowClass}" style="width:70%;">
             <div class="rarity-badge badge-${res.rarity}">${res.rarity}</div>
         </div>`;
@@ -990,7 +710,6 @@ function buyShopItemModal(stickerId, price) {
     let s = stickerDB.find(x => x.id === stickerId);
     let stars = window.gachaData.stars[s.id] || 0;
 
-    // ★ 修復：最高 5 星防呆檢查
     if (stars >= 5) {
         alert("這張貼紙已經滿星（5星）囉，不需要再升級了！✨");
         return;
@@ -1007,28 +726,9 @@ function buyShopItemModal(stickerId, price) {
         localStorage.setItem('gachaSystemV5', JSON.stringify(window.gachaData));
         alert("升級成功！");
         document.getElementById('lobby-modal-content').innerHTML = buildShopContent();
-        updateLobbyUI();
+        window.updateLobbyUI();
         checkUnlocks();
         changeHeroSelection(0);
-    }
-}
-
-function editWallSlot(index) {
-    let pick = prompt("請輸入貼紙編號 (如 SR1, SSR2)，輸入 0 取下");
-    if (pick !== null) {
-        if (pick.trim() === '0') {
-            window.gachaData.wall[index] = null;
-        } else {
-            let targetS = stickerDB.find(x => getStickerDisplayId(x).toUpperCase() === pick.trim().toUpperCase());
-            if (targetS && enabledStickers.includes(targetS.id) && window.gachaData.collection.includes(targetS.id)) {
-                window.gachaData.wall[index] = targetS.id;
-            } else {
-                alert("尚未獲得或編號錯誤！");
-            }
-        }
-        localStorage.setItem('gachaSystemV5', JSON.stringify(window.gachaData));
-        document.getElementById('lobby-modal-content').innerHTML = buildWallContent();
-        updateLobbyUI();
     }
 }
 
@@ -1036,7 +736,7 @@ window.showStickerDetail = function(stickerId) {
     let s = stickerDB.find(x => x.id === stickerId);
     if (!s || !window.gachaData.collection.includes(stickerId)) return;
     let stars = window.gachaData.stars[stickerId] || 0;
-    let assets = getStickerAssets(s);
+    let assets = window.getStickerAssets(s);
     let matchedHero = stickerId < 10 ? heroes[stickerId] : null;
     let modal = document.getElementById('sticker-detail-modal');
     
@@ -1132,7 +832,7 @@ function updateLessonsModal(checkbox) {
     }
 }
 
-function showLessonWordsModal(lesson) {
+window.showLessonWordsModal = function(lesson) {
     let words = lessonData[lesson];
     let modal = document.getElementById('word-list-modal');
     if (!modal) {
@@ -1151,16 +851,16 @@ function showLessonWordsModal(lesson) {
         <button class="big-btn" style="margin-top:20px;" onclick="closeWordListModal()">關閉</button>
     </div>`;
     modal.style.display = 'flex';
-}
+};
 
-function closeWordListModal() {
+window.closeWordListModal = function() {
     const modal = document.getElementById('word-list-modal');
     if (modal) modal.style.display = 'none';
-}
+};
 
 // ========== 大廳主畫面切換 ==========
-function openLobby() {
-    updateLobbyUI();
+window.openLobby = function() {
+    window.updateLobbyUI();
     
     if (typeof bgm !== 'undefined' && !bgm.paused) bgm.pause();
     
@@ -1183,11 +883,16 @@ function openLobby() {
         window.lobbyBgm.volume = window.audioSettings ? window.audioSettings.bgm : 0.5;
         window.lobbyBgm.play().catch(e => {});
     }
-}
+};
 
-function closeLobby() {
+window.closeLobby = function() {
     const lobby = document.getElementById('gacha-lobby');
     if (lobby) lobby.style.display = 'none';
+    
+    if (window.villageCampfireAudio) { 
+        window.villageCampfireAudio.pause(); 
+        window.villageCampfireAudio.currentTime = 0; 
+    }
     
     let gameCont = document.getElementById('game-container');
     let isInBattle = gameCont && gameCont.classList.contains('game-show');
@@ -1202,22 +907,23 @@ function closeLobby() {
         checkUnlocks();
         changeHeroSelection(0);
     }
-}
+};
 
-// ========== 建立大廳畫面 (垂直排列 + 圖片按鈕版) ==========
+// ========== 建立大廳畫面 (整合所有果凍與碎星魔法特效) ==========
 function createLobbyUI() {
     let oldLobby = document.getElementById('gacha-lobby');
     if (oldLobby) oldLobby.remove();
     let oldModal = document.getElementById('lobby-modal');
     if (oldModal) oldModal.remove();
 
-    if (typeof calcBuffs === 'function') calcBuffs();
+    if (typeof window.calcBuffs === 'function') window.calcBuffs();
 
     document.body.insertAdjacentHTML('beforeend', `
-        <div id="gacha-lobby" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:url('assets/bg_lobby.png') center/cover no-repeat; z-index:6000; flex-direction:column; padding:20px; box-sizing:border-box; overflow-y:auto;">
+        <div id="gacha-lobby" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:url('assets/bg_lobby.png') center/cover no-repeat; z-index:6000; flex-direction:column; padding:20px; box-sizing:border-box; overflow-y:auto; overflow-x:hidden;">
             
-            <!-- 🌟 頂部狀態列 -->
-            <div class="lobby-header" style="display:grid; grid-template-columns: 1fr auto 1fr; align-items:center; background:rgba(255,255,255,0.7); backdrop-filter:blur(10px); -webkit-backdrop-filter:blur(10px); padding:8px 20px; border-radius:40px; margin-bottom:20px; border:2px solid rgba(255,255,255,0.8); box-shadow:0 8px 20px rgba(0,0,0,0.15);">
+            <div id="magic-particles" style="position:fixed; top:0; left:0; width:100%; height:100%; pointer-events:none; z-index:1; overflow:hidden;"></div>
+
+            <div class="lobby-header" style="position:relative; z-index:10; display:grid; grid-template-columns: 1fr auto 1fr; align-items:center; background:rgba(255,255,255,0.7); backdrop-filter:blur(10px); -webkit-backdrop-filter:blur(10px); padding:8px 20px; border-radius:40px; margin-bottom:20px; border:2px solid rgba(255,255,255,0.8); box-shadow:0 8px 20px rgba(0,0,0,0.15);">
                 <div style="justify-self: start; font-size:22px; font-weight:bold; color:#d81b60; text-shadow:1px 1px 0px #fff; white-space:nowrap;">📔 魔法圖鑑大廳</div>
                 <div style="justify-self: center; display:flex; gap:25px; font-size:22px; font-weight:bold;">
                     <span style="color:#e67e22; text-shadow:1px 1px 0px #fff; display:flex; align-items:center; gap:5px;">🪙 <span id="lobby-coin-val">${window.gachaData.coins}</span></span>
@@ -1228,27 +934,19 @@ function createLobbyUI() {
                 </button>
             </div>
             
-            <!-- 🌟 Buff 狀態列 -->
-            <div id="buff-panel" style="background:rgba(255,255,255,0.85); backdrop-filter:blur(5px); padding:12px; border-radius:20px; margin-bottom:25px; text-align:center; font-weight:bold; font-size:18px; color:#2c3e50; border:2px dashed rgba(255,182,193,0.8); box-shadow:0 4px 10px rgba(0,0,0,0.05);">
+            <div id="buff-panel" style="position:relative; z-index:10; background:rgba(255,255,255,0.85); backdrop-filter:blur(5px); padding:12px; border-radius:20px; margin-bottom:25px; text-align:center; font-weight:bold; font-size:18px; color:#2c3e50; border:2px dashed rgba(255,182,193,0.8); box-shadow:0 4px 10px rgba(0,0,0,0.05);">
                 ✨ 加成：血量 +${window.hpBuffAmt || 0}💖 | 爆擊率 ${window.critRate || 5}%💥 | 提示 +${window.hintBuffAmt || 0}🪄 | 額外代幣 +${window.extraCoinsBonus || 0}🪙
             </div>
             
-            <!-- 🌟 按鈕區塊：改為垂直擺設 -->
-            <div style="display:flex; flex-direction:column; align-items:center; gap:20px; padding: 10px;">
-                
-                <!-- 1. 圖片化的「貼紙村莊」按鈕 -->
-				<div class="rpg-icon-btn" onclick="openModal('wall')">
-					<img src="assets/btn_village.png" alt="貼紙村莊" style="width: 250px; height: auto; filter: drop-shadow(0 5px 10px rgba(0,0,0,0.3));">
-				</div>
-
-                <!-- 其他按鈕暫時維持水晶風格，但改為垂直排列 -->
-                <button class="lobby-btn btn-gacha" onclick="openModal('gacha')">🎁 轉蛋機</button>
-                <button class="lobby-btn btn-shop" onclick="openModal('shop')">🏪 商店</button>
-                <button class="lobby-btn btn-collection" onclick="openModal('collection')">📚 所有貼紙</button>
-                <button class="lobby-btn btn-lessons" onclick="openModal('lessons')">📖 單字本</button>
-                <button class="lobby-btn btn-report" onclick="openModal('report')">📊 戰報</button>
-                <button class="lobby-btn btn-settings" onclick="openPoolEditor()">⚙️ 開放設定</button>
-                <button class="lobby-btn btn-rules" onclick="openModal('rules')">📜 規則</button>
+            <div style="position:relative; z-index:10; display:flex; flex-direction:column; align-items:center; gap:20px; padding: 10px;">
+                <div class="rpg-icon-btn" onclick="openModal('wall')" style="--delay: 0s;"><img src="assets/btn_village.png"></div>
+                <div class="rpg-icon-btn" onclick="openModal('gacha')" style="--delay: 0.1s;"><img src="assets/btn_gacha.png"></div>
+                <div class="rpg-icon-btn" onclick="openModal('shop')" style="--delay: 0.2s;"><img src="assets/btn_shop.png"></div>
+                <div class="rpg-icon-btn" onclick="openModal('collection')" style="--delay: 0.3s;"><img src="assets/btn_collection.png"></div>
+                <div class="rpg-icon-btn" onclick="openModal('lessons')" style="--delay: 0.4s;"><img src="assets/btn_lessons.png"></div>
+                <div class="rpg-icon-btn" onclick="openModal('report')" style="--delay: 0.5s;"><img src="assets/btn_report.png"></div>
+                <div class="rpg-icon-btn" onclick="openPoolEditor()" style="--delay: 0.6s;"><img src="assets/btn_settings.png"></div>
+                <div class="rpg-icon-btn" onclick="openModal('rules')" style="--delay: 0.7s;"><img src="assets/btn_rules.png"></div>
             </div>
         </div>
         
@@ -1260,62 +958,117 @@ function createLobbyUI() {
         </div>
     `);
 
-    // CSS 樣式更新
+    // 🌟 CSS 動畫引擎與按鈕樣式 (果凍彈跳、全域星塵、點擊碎星、英雄漂浮)
     const style = document.createElement('style');
     style.textContent = `
-        /* 圖片型按鈕樣式 */
-        .rpg-icon-btn {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            cursor: pointer;
-            transition: transform 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        /* 按鈕主體：移除所有反光，改成果凍彈跳樣式 */
+        .rpg-icon-btn { 
+            position: relative;
+            display: flex; flex-direction: column; align-items: center; cursor: pointer; 
+            width: 250px; 
+            animation: bounceIn 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275) both;
+            animation-delay: var(--delay, 0s);
+            user-select: none;
         }
-        .rpg-icon-btn:hover { transform: scale(1.1) translateY(-5px); }
-        .rpg-icon-btn:active { transform: scale(0.95); }
-        .rpg-btn-label {
-            font-size: 18px;
-            font-weight: bold;
-            color: #fff;
-            text-shadow: 2px 2px 4px #000, -1px -1px 0 #000, 1px -1px 0 #000, -1px 1px 0 #000, 1px 1px 0 #000;
-            margin-bottom: 5px;
+        
+        .rpg-icon-btn img {
+            width: 100%; height: auto; 
+            filter: drop-shadow(0 5px 8px rgba(0,0,0,0.3));
+            transition: transform 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
         }
 
-        /* 水晶按鈕垂直寬度統一 */
-        .lobby-btn {
-            width: 200px; /* 垂直排列時，統一寬度會比較好看 */
-            padding: 12px;
-            font-size: 18px;
-            font-weight: 900;
-            border: 2px solid rgba(255, 255, 255, 0.7); 
-            border-radius: 30px;
-            cursor: pointer;
-            color: white;
-            text-shadow: 0 2px 4px rgba(0,0,0,0.4); 
-            box-shadow: 0 4px 10px rgba(0,0,0,0.2), inset 0 3px 6px rgba(255,255,255,0.4); 
-            transition: all 0.2s;
+        /* 🧽 果凍感 Hover 特效：縮放不對稱 */
+        .rpg-icon-btn:hover img { 
+            transform: scale(1.1, 0.9) translateY(-5px); 
+            filter: drop-shadow(0 15px 20px rgba(255, 230, 150, 0.6));
         }
-        .btn-settings { background: linear-gradient(135deg, #ff758c, #ff7eb3); }
-        .btn-rules { background: linear-gradient(135deg, #f6d365, #fda085); }
-        .btn-shop { background: linear-gradient(135deg, #a18cd1, #fbc2eb); }
-        .btn-collection { background: linear-gradient(135deg, #ff9a9e, #fecfef); color: #d63031; }
-        .btn-lessons { background: linear-gradient(135deg, #43e97b, #38f9d7); color: #1e272e; }
-        .btn-report { background: linear-gradient(135deg, #e0c3fc, #8ec5fc); color: #2d3436; }
-        .btn-gacha { background: linear-gradient(135deg, #f093fb, #f5576c); animation: pulseGlow 2s infinite alternate; }
+        .rpg-icon-btn:active img { 
+            transform: scale(0.9, 1.1); 
+        }
 
-        @keyframes pulseGlow { 0% { box-shadow: 0 0 10px rgba(245, 87, 108, 0.4); } 100% { box-shadow: 0 0 20px rgba(245, 87, 108, 0.7); } }
-        .magic-close-btn:hover { transform: scale(1.15) rotate(90deg); }
+        /* 🧚‍♂️ 主英雄懸浮動畫 */
+        #selected-char-preview {
+            animation: heroFloat 3s ease-in-out infinite !important;
+        }
+
+        @keyframes heroFloat {
+            0%, 100% { transform: translateY(0) rotate(0deg); }
+            50% { transform: translateY(-15px) rotate(1deg); }
+        }
+
+        @keyframes bounceIn {
+            0% { transform: scale(0); opacity: 0; }
+            100% { transform: scale(1); opacity: 1; }
+        }
+
+        /* 🌟 全域星塵氣泡 */
+        @keyframes floatUp {
+            0% { transform: translateY(0) scale(1); opacity: 0; }
+            20% { opacity: 0.6; }
+            100% { transform: translateY(-100vh) scale(0.5); opacity: 0; }
+        }
+
+        /* ✨ 魔法點擊碎星動畫 */
+        .click-sparkle {
+            position: fixed;
+            pointer-events: none;
+            width: 10px; height: 10px;
+            background: #fff;
+            border-radius: 50%;
+            z-index: 9999;
+            box-shadow: 0 0 10px 2px #ffd700;
+            animation: sparkleOut 0.8s ease-out forwards;
+        }
+
+        @keyframes sparkleOut {
+            0% { transform: translate(0, 0) scale(1); opacity: 1; }
+            100% { transform: translate(var(--dx), var(--dy)) scale(0); opacity: 0; }
+        }
     `;
     document.head.appendChild(style);
-	
-	
-	let startScreen = document.getElementById('start-screen');
+    
+    // 🌟 初始化全域星塵氣泡
+    const pContainer = document.getElementById('magic-particles');
+    if (pContainer) {
+        for (let i = 0; i < 25; i++) {
+            let p = document.createElement('div');
+            p.style.cssText = `position:absolute; bottom:-20px; left:${Math.random()*100}%; width:5px; height:5px; background:rgba(255,255,255,0.3); border-radius:50%; animation:floatUp ${6+Math.random()*10}s linear ${Math.random()*5}s infinite;`;
+            pContainer.appendChild(p);
+        }
+    }
+
+    // ✨ 註冊全域點擊碎星事件
+    const lobbyEl = document.getElementById('gacha-lobby');
+    if (lobbyEl) {
+        lobbyEl.addEventListener('mousedown', (e) => {
+            for(let i=0; i<8; i++) {
+                let s = document.createElement('div');
+                s.className = 'click-sparkle';
+                s.style.left = e.clientX + 'px';
+                s.style.top = e.clientY + 'px';
+                s.style.setProperty('--dx', (Math.random()*100-50)+'px');
+                s.style.setProperty('--dy', (Math.random()*100-50)+'px');
+                document.body.appendChild(s);
+                setTimeout(() => s.remove(), 800);
+            }
+        });
+    }
+
+    // 重新載入英雄時自動套用懸浮
+    setTimeout(() => {
+        let heroImg = document.getElementById('selected-char-preview');
+        if (heroImg) heroImg.style.animation = 'heroFloat 3s ease-in-out infinite';
+    }, 500);
+
+    let startScreen = document.getElementById('start-screen');
     if (startScreen && !document.getElementById('enter-lobby-btn')) {
-        let openBtn = document.createElement('button');
+        let openBtn = document.createElement('div');
         openBtn.id = 'enter-lobby-btn';
-        openBtn.innerHTML = "📔 進入大廳";
-        openBtn.style.cssText = "background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%); color: white; padding: 15px 40px; border-radius: 50px; font-size: 24px; font-weight: bold; border: 3px solid rgba(255,255,255,0.8); cursor: pointer; margin-top: 20px; box-shadow: 0 8px 20px rgba(0,0,0,0.2), inset 0 3px 6px rgba(255,255,255,0.6); text-shadow: 0 2px 4px rgba(0,0,0,0.4); transition: transform 0.2s;";
-        openBtn.onclick = openLobby;
+        openBtn.style.cssText = "cursor: pointer; margin-top: 15px; transition: transform 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275); z-index: 100;";
+        openBtn.innerHTML = `<img src="assets/btn_lobby.png" alt="進入大廳" style="width: 220px; height: auto; filter: drop-shadow(0 8px 15px rgba(0,0,0,0.4));">`;
+        openBtn.onmouseover = () => openBtn.style.transform = 'scale(1.08) translateY(-5px)';
+        openBtn.onmouseout = () => openBtn.style.transform = 'scale(1) translateY(0)';
+        openBtn.onclick = window.openLobby;
         startScreen.appendChild(openBtn);
     }
 }
@@ -1325,5 +1078,5 @@ document.addEventListener('DOMContentLoaded', function () {
     createLobbyUI();
     checkUnlocks();
     changeHeroSelection(0);
-    updateLobbyUI();
+    window.updateLobbyUI();
 });

@@ -626,6 +626,22 @@ window.renderVictoryScreen = function(reward, isConsolation, isDouble) {
         : `<img class="chest-img-target" src="assets/${reward.chestImgName}" onerror="this.outerHTML='<span class=\\'chest-img-target\\' style=\\'font-size:150px;\\'>${reward.chestEmoji}</span>'" style="width:250px; height:250px; object-fit:contain; filter:drop-shadow(0 15px 15px rgba(0,0,0,0.6)); animation: breatheAnim 2s infinite; transition: 0.2s;">`;
 
     let vsScreen = document.getElementById('victory-screen');
+
+    // 🌟🌟🌟 新增：精準判斷第三關的輸贏來切換背景 🌟🌟🌟
+    if (isDouble) {
+        // 第三關贏了 (雙倍寶箱) -> 顯示背景3
+        vsScreen.style.backgroundImage = "url('assets/bg_victory3.png')";
+    } else if (isConsolation) {
+        // 第三關輸了 (拿第二關保底) -> 顯示背景2
+        vsScreen.style.backgroundImage = "url('assets/bg_victory2.png')";
+    } else {
+        // 其他預設狀況 (例如如果有做只打第一關就結算的機制)
+        vsScreen.style.backgroundImage = "url('assets/bg_victory.png')";
+    }
+    vsScreen.style.backgroundSize = "cover";
+    vsScreen.style.backgroundPosition = "center";
+    // 🌟🌟🌟 替換背景圖結束 🌟🌟🌟
+
     vsScreen.style.display = 'flex';
     
     let nsd = document.getElementById('new-sticker-display');

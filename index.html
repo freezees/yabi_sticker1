@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+=<!DOCTYPE html>
 <html lang="zh-Hant">
 <head>
     <meta charset="UTF-8">
@@ -29,16 +29,31 @@
 <body>
 
 <div id="start-screen">
-    <h1 style="font-size: 32px; color: #ff1493; text-shadow: var(--fairy-glow); margin-bottom: 30px;">挑選你的勇者</h1>
-    <div class="char-selector">
-        <button class="nav-arrow" onclick="changeHeroSelection(-1)">◀</button>
-        <div style="text-align: center;">
+    <img src="assets/title_hero.png" alt="挑選你的勇者" style="width: 350px; max-width: 90%; margin-bottom: 20px; filter: drop-shadow(0 5px 10px rgba(0,0,0,0.5));">
+    
+    <!-- 🌟 修改處：加入 display: flex 讓圖片箭頭與勇者完美水平對齊 -->
+    <div class="char-selector" style="display: flex; align-items: center; justify-content: center; gap: 15px;">
+        
+        <!-- 🌟 圖片版：向左選角箭頭 -->
+        <div class="hero-nav-arrow" onclick="changeHeroSelection(-1)" style="cursor: pointer; z-index: 100;" onmouseover="this.querySelector('img').style.transform='scale(1.2)'" onmouseout="this.querySelector('img').style.transform='scale(1)'">
+            <img src="assets/arrow_left.png" alt="上一個" style="width: 50px; height: auto; filter: drop-shadow(0 4px 8px rgba(0,0,0,0.5)); transition: transform 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275);">
+        </div>
+
+        <div style="text-align: center; margin: 0 10px;">
             <img id="selected-char-preview" src="">
             <div id="char-status-text">已準備就緒</div>
         </div>
-        <button class="nav-arrow" onclick="changeHeroSelection(1)">▶</button>
+
+        <!-- 🌟 圖片版：向右選角箭頭 -->
+        <div class="hero-nav-arrow" onclick="changeHeroSelection(1)" style="cursor: pointer; z-index: 100;" onmouseover="this.querySelector('img').style.transform='scale(1.2)'" onmouseout="this.querySelector('img').style.transform='scale(1)'">
+            <img src="assets/arrow_right.png" alt="下一個" style="width: 50px; height: auto; filter: drop-shadow(0 4px 8px rgba(0,0,0,0.5)); transition: transform 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275);">
+        </div>
+
     </div>
-    <button id="central-start-btn" onclick="startGame()">點擊開始冒險 ✨</button>
+
+    <div onclick="startGame()" style="cursor: pointer; transition: transform 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275); margin-top: 10px;" onmouseover="this.style.transform='scale(1.08) translateY(-5px)'" onmouseout="this.style.transform='scale(1) translateY(0)'">
+    <img src="assets/btn_start.png" alt="開始冒險" style="width: 220px; height: auto; filter: drop-shadow(0 8px 15px rgba(0,0,0,0.4));">
+    </div>
 </div>
 
 <audio id="hero-atk-sfx"></audio>
@@ -60,7 +75,7 @@
     <button class="big-btn" onclick="location.reload()">再次挑戰 ⚔️</button>
 </div>
 
-<div id="victory-screen" style="background-image: url('assets/bg_victory.png');">
+<div id="victory-screen" style="display: none;">
     <h1 style="font-size: 40px; color: #ff1493; text-shadow: 0 0 10px white;">✨ 獲得新貼紙！ ✨</h1>
     <div id="new-sticker-display"></div>
     <button class="big-btn" onclick="location.reload()">回村莊</button>
@@ -128,8 +143,6 @@
     </div>
 </div>
 
-<!-- ✨ 修改處：刪除重複的舊版 lobby-modal 程式碼，確保不會衝突 -->
-
 <div id="game-container">
     <div id="level-tag">第一關</div>
     
@@ -168,6 +181,9 @@
 <script src="data.js?v=5"></script>
 <script src="effects.js?v=5"></script>
 <script src="system.js?v=5"></script>
+
+<!-- 🏡 魔法村莊引擎 (新增在這裡！) -->
+<script src="village.js?v=5"></script>
 <script src="lobby.js?v=5"></script>
 
 <script src="hero_edwin.js?v=5"></script>

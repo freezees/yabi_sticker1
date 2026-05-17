@@ -15,7 +15,14 @@ window.pendingDamageForFeedback = 0;
 // 單字庫系統
 const lessonData = {
     "lesson1": ["apple", "banana", "pear", "bread", "carrot", "mango", "rice", "vegetables", "guava", "papaya", "grape", "cheese", "fruit", "potato", "onion", "arm", "ear", "eye", "finger", "hair", "hand", "head", "leg", "nose", "jacket", "raincoat", "skirt", "socks", "t-shirt", "umbrella", "basketball", "bed", "closet", "computer", "skateboard", "teddy bear", "toy train", "big", "small", "long", "short", "new", "old", "orange", "purple", "friend"],
-    "lesson2": ["water", "juice", "coke", "hungry", "thirsty", "soup", "pizza", "pasta", "cake", "ice cream", "hot", "cold", "sunny", "cloudy", "rainy", "draw", "triangle", "circle", "square", "park"],
+    "lesson2": [
+        "water", "juice", "coke", "hungry", "thirsty", "soup", "pizza", "pasta", "cake", "ice cream", "hot", "cold", "sunny", "cloudy", "rainy", "draw", "triangle", "circle", "square", "park",
+        "animals", "lion", "zoo", "tiger", "elephant", "monkey", "giraffe", "zebra", "snake", "koala", "ugly", "strong", "cool", "scary", "funny", "bird", "penguin", "bear", "panda", "hippo", 
+        "teacher", "doctor", "student", "mail carrier", "nurse", 
+        "next to", "school", "post office", "pet shop", "hospital", "in front of", "bank", "behind", "restaurant", "supermarket", "shopkeeper", "waiter", "waitress", "clerk", "at the park",
+        "farm", "cow", "chicken", "horse", "pig", "eleven", "twelve", "thirteen", "fourteen", "fifteen", "sixteen", "seventeen", "eighteen", "nineteen", "twenty", 
+        "farmer", "flower", "egg", "nut", "plant", "honey", "milk", "lettuce", "jam", "tea"
+    ],
     "lesson3": ["red", "blue", "green", "yellow", "black", "white"],
     "lesson4": ["one", "two", "three", "four", "five"],
     "lesson5": ["run", "jump", "walk", "sleep", "eat"]
